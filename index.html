@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-950 text-slate-100">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UC Restroom Index - Campus Facilities & Rating Guide</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        uc: {
+                            red: '#E00122',
+                            darkred: '#9E0016',
+                            black: '#111111',
+                            gray: '#1E1E24'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Google Fonts & Font Awesome Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Leaflet JS Map CSS & JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* Custom Scrollbars */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #E00122;
+        }
+
+        /* Leaflet popup customization */
+        .leaflet-popup-content-wrapper {
+            background: #1e293b !important;
+            color: #f8fafc !important;
+            border-radius: 0.75rem !important;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5) !important;
+            border: 1px solid #334155;
+            padding: 4px;
+        }
+        .leaflet-popup-tip {
+            background: #1e293b !important;
+        }
+        .custom-map-marker {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #E00122;
+            color: white;
+            border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+            transition: all 0.2s ease;
+        }
+        .custom-map-marker:hover {
+            transform: scale(1.15);
+            background: #ffffff;
+            color: #E00122;
+            border-color: #E00122;
+        }
+
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        @keyframes pulse-ring {
+            0% { transform: scale(0.95); opacity: 0.8; }
+            50% { transform: scale(1.1); opacity: 0.4; }
+            100% { transform: scale(0.95); opacity: 0.8; }
+        }
+        .user-loc-pulse {
+            animation: pulse-ring 2s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="h-full flex flex-col bg-slate-950 text-slate-100 overflow-hidden">
+
+    <!-- Header -->
+    <header class="bg-slate-900 border-b border-slate-800 z-30 shrink-0 shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-uc-red flex items-center justify-center text-white font-extrabold text-xl shadow-md shadow-uc-red/30">
+                    <i class="fa-solid fa-restroom"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold tracking-tight text-white flex items-center gap-2">
+                        UC Restroom Index 
+                        <span class="bg-uc-red/20 text-uc-red text-xs px-2 py-0.5 rounded-full font-semibold border border-uc-red/30">UC Campus</span>
+                    </h1>
+                    <p class="text-xs text-slate-400">Bearcat Restroom Guide & Facility Ratings</p>
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-2 sm:space-x-3">
+                <button id="locateMeBtn" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 flex items-center gap-2 transition">
+                    <i class="fa-solid fa-location-crosshairs text-uc-red"></i>
+                    <span class="hidden sm:inline">Locate Me</span>
+                </button>
+                <button id="openDevModal" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 flex items-center gap-2 transition">
+                    <i class="fa-solid fa-code text-indigo-400"></i>
+                    <span class="hidden sm:inline">Portfolio Specs</span>
+                </button>
+                <button id="addBathroomBtn" class="px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-uc-red hover:bg-uc-darkred text-white shadow-md shadow-uc-red/20 flex items-center gap-2 transition transform active:scale-95">
+                    <i class="fa-solid fa-plus"></i>
+                    <span>Rate Restroom</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Grid -->
+    <div class="flex-1 flex flex-col lg:flex-row overflow-hidden relative">
+
+        <!-- Left Column: Map View -->
+        <div class="w-full lg:w-3/5 h-64 lg:h-auto relative flex-shrink-0">
+            <div id="map" class="w-full h-full z-10 bg-slate-900"></div>
+
+            <!-- Floating Quick Stats Widget -->
+            <div class="absolute top-4 left-4 z-20 glass-panel rounded-xl p-3 shadow-xl max-w-xs hidden sm:block">
+                <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Campus Overview</h3>
+                <div class="grid grid-cols-2 gap-2 text-xs">
+                    <div class="bg-slate-800/60 p-2 rounded-lg border border-slate-700/50">
+                        <div class="text-slate-400 text-[10px]">Total Rated</div>
+                        <div id="statTotal" class="text-lg font-bold text-white">0</div>
+                    </div>
+                    <div class="bg-slate-800/60 p-2 rounded-lg border border-slate-700/50">
+                        <div class="text-slate-400 text-[10px]">Avg Cleanliness</div>
+                        <div id="statAvgClean" class="text-lg font-bold text-emerald-400">0.0 ★</div>
+                    </div>
+                    <div class="bg-slate-800/60 p-2 rounded-lg border border-slate-700/50">
+                        <div class="text-slate-400 text-[10px]">Top Secret Hideout</div>
+                        <div id="statSecret" class="text-xs font-semibold text-amber-400 truncate">--</div>
+                    </div>
+                    <div class="bg-slate-800/60 p-2 rounded-lg border border-slate-700/50">
+                        <div class="text-slate-400 text-[10px]">Highest Rated</div>
+                        <div id="statTopBuilding" class="text-xs font-semibold text-uc-red truncate">--</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Map Controls Overlay -->
+            <div class="absolute bottom-4 left-4 z-20 flex gap-2">
+                <button id="resetMapCenter" class="glass-panel text-slate-200 hover:text-white px-3 py-1.5 rounded-lg text-xs font-medium border border-slate-700 flex items-center gap-1.5 shadow-md">
+                    <i class="fa-solid fa-bullseye text-uc-red"></i> Recenter UC Main
+                </button>
+            </div>
+        </div>
+
+        <!-- Right Column: Sidebar Restroom Directory -->
+        <div class="w-full lg:w-2/5 flex flex-col h-full bg-slate-900 border-l border-slate-800 overflow-hidden">
+
+            <div class="p-4 border-b border-slate-800 bg-slate-900/90 space-y-3">
+                <div class="flex items-center gap-2">
+                    <div class="relative flex-1">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-500 text-xs"></i>
+                        <input type="text" id="searchInput" placeholder="Search by building, floor, tag..." class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 py-2 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-uc-red focus:ring-1 focus:ring-uc-red transition">
+                    </div>
+                    <button id="filterToggleBtn" class="px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-750 flex items-center gap-1.5 transition">
+                        <i class="fa-solid fa-sliders"></i> Filters
+                    </button>
+                </div>
+
+                <!-- Expanded Filter Drawer (Hidden by default) -->
+                <div id="filterDrawer" class="hidden space-y-3 pt-2 border-t border-slate-800 text-xs">
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="text-[10px] text-slate-400 font-medium uppercase mb-1 block">Building</label>
+                            <select id="filterBuilding" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1.5 text-slate-200 focus:border-uc-red outline-none">
+                                <option value="ALL">All Buildings</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-[10px] text-slate-400 font-medium uppercase mb-1 block">Min Cleanliness</label>
+                            <select id="filterCleanliness" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1.5 text-slate-200 focus:border-uc-red outline-none">
+                                <option value="0">Any Score</option>
+                                <option value="4">4+ Stars (Clean)</option>
+                                <option value="4.5">4.5+ Stars (Pristine)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap gap-2 pt-1">
+                        <label class="inline-flex items-center gap-1.5 bg-slate-950 border border-slate-800 px-2.5 py-1 rounded-lg text-slate-300 cursor-pointer">
+                            <input type="checkbox" id="filterGenderNeutral" class="rounded accent-uc-red"> Gender Neutral
+                        </label>
+                        <label class="inline-flex items-center gap-1.5 bg-slate-950 border border-slate-800 px-2.5 py-1 rounded-lg text-slate-300 cursor-pointer">
+                            <input type="checkbox" id="filterAccessible" class="rounded accent-uc-red"> ADA Accessible
+                        </label>
+                        <label class="inline-flex items-center gap-1.5 bg-slate-950 border border-slate-800 px-2.5 py-1 rounded-lg text-slate-300 cursor-pointer">
+                            <input type="checkbox" id="filterFeminineProducts" class="rounded accent-uc-red"> Feminine Products
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Quick Filter Pill Tags -->
+                <div class="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs no-scrollbar">
+                    <button class="quick-chip active-chip px-3 py-1 rounded-full text-xs font-medium bg-uc-red text-white border border-uc-red transition shrink-0" data-filter="all">All Restrooms</button>
+                    <button class="quick-chip px-3 py-1 rounded-full text-xs font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700 transition shrink-0" data-filter="top">★ Top Rated</button>
+                    <button class="quick-chip px-3 py-1 rounded-full text-xs font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700 transition shrink-0" data-filter="quiet">🤫 High Privacy</button>
+                    <button class="quick-chip px-3 py-1 rounded-full text-xs font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700 transition shrink-0" data-filter="neutral">⚧️ Gender Neutral</button>
+                </div>
+            </div>
+
+            <div id="restroomList" class="flex-1 overflow-y-auto p-4 space-y-3">
+                <!-- Dynamically populated card items -->
+            </div>
+            
+            <!-- List Footer Info -->
+            <div class="p-3 border-t border-slate-800 bg-slate-950 text-center text-[11px] text-slate-500 flex justify-between items-center">
+                <span id="resultCount">Showing 0 restrooms</span>
+                <span class="text-slate-400">Loaded from data.json</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Ranking Guidelines -->
+    <div id="ratingModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm hidden overflow-y-auto">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl my-8">
+            <div class="bg-gradient-to-r from-slate-900 via-slate-850 to-slate-900 p-4 border-b border-slate-800 flex justify-between items-center">
+                <h3 class="text-base font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-list-check text-uc-red"></i> Restroom Ranking Guidelines
+                </h3>
+                <button id="closeModalBtn" class="text-slate-400 hover:text-white text-lg w-8 h-8 rounded-full flex items-center justify-center hover:bg-slate-800 transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="p-5 space-y-4 max-h-[80vh] overflow-y-auto text-xs text-slate-300">
+                <p class="text-slate-400">Add each new review as an object in <strong class="text-white">data.json</strong>, then commit and push the file to GitHub Pages.</p>
+                <div class="space-y-3">
+                    <div class="bg-slate-950 border border-slate-800 rounded-xl p-3"><strong class="text-white">Cleanliness (1-5)</strong><p class="mt-1 text-slate-400">1 = needs attention, 3 = acceptable, 5 = exceptionally clean.</p></div>
+                    <div class="bg-slate-950 border border-slate-800 rounded-xl p-3"><strong class="text-white">Privacy (1-5)</strong><p class="mt-1 text-slate-400">1 = high traffic or exposed, 3 = standard stalls, 5 = private or single-occupancy.</p></div>
+                    <div class="bg-slate-950 border border-slate-800 rounded-xl p-3"><strong class="text-white">Noise (1-5)</strong><p class="mt-1 text-slate-400">1 = quiet, 3 = moderate foot traffic, 5 = busy or echoey.</p></div>
+                    <div class="bg-slate-950 border border-slate-800 rounded-xl p-3"><strong class="text-white">Amenities</strong><p class="mt-1 text-slate-400">Use an array such as <code class="text-uc-red">[&quot;Feminine Products&quot;, &quot;Bag Hook&quot;, &quot;Power Outlets&quot;]</code>. Include ADA access with <code class="text-uc-red">&quot;ada&quot;: true</code>.</p></div>
+                </div>
+                <div class="bg-uc-red/10 border border-uc-red/30 rounded-xl p-3 text-slate-300"><strong class="text-white">Required fields:</strong> id, building, roomNumber, floor, lat, lng, gender, ada, cleanliness, privacy, noise, vibe, amenities, review, lastUpdated.</div>
+                <button type="button" id="cancelFormBtn" class="w-full py-2 rounded-xl border border-slate-700 text-xs font-semibold text-slate-300 hover:bg-slate-800 transition">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Developer Portfolio Technical Specs -->
+    <div id="devModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm hidden">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-xl overflow-hidden shadow-2xl">
+            <div class="p-4 border-b border-slate-800 flex justify-between items-center bg-slate-950">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-laptop-code text-indigo-400"></i>
+                    <h3 class="text-sm font-bold text-white">Developer Specs & Technical Overview</h3>
+                </div>
+                <button id="closeDevModalBtn" class="text-slate-400 hover:text-white text-base">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="p-5 text-xs text-slate-300 space-y-4 max-h-[75vh] overflow-y-auto">
+                <div class="bg-indigo-950/40 border border-indigo-800/50 p-3 rounded-xl">
+                    <h4 class="font-bold text-indigo-300 mb-1 flex items-center gap-1.5">
+                        <i class="fa-solid fa-star"></i> Portfolio Highlights
+                    </h4>
+                    <p class="leading-relaxed text-slate-300">
+                        UC Restroom Index is a single-page interactive UI application demonstrating web mapping integrations, client-side state management, and real-time local data persistence. Designed as a polished, high-utility campus facility review platform.
+                    </p>
+                </div>
+
+                <div>
+                    <h4 class="font-bold text-white mb-2">Technical Architecture:</h4>
+                    <ul class="space-y-2 list-disc pl-4 text-slate-300">
+                        <li><strong class="text-slate-100">Interactive Map Integration:</strong> Leaflet.js with custom styled markers, coordinate popups, dynamic bounds zooming, and geolocation services.</li>
+                        <li><strong class="text-slate-100">Persistence Layer:</strong> Static JSON data loaded with Fetch, making updates simple to review and publish through GitHub Pages.</li>
+                        <li><strong class="text-slate-100">Dynamic UI State:</strong> Real-time filtering by building, star ratings, accessibility, feminine products, and text searching.</li>
+                        <li><strong class="text-slate-100">Theme System:</strong> Tailored University of Cincinnati Bearcat branding (#E00122 Red & Black palette) with responsive mobile design.</li>
+                    </ul>
+                </div>
+
+                <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
+                    <h4 class="font-bold text-slate-200 mb-1">Quick Editing Tip:</h4>
+                    <p class="text-slate-400">
+                        Click <span class="text-uc-red font-semibold">"Rate Restroom"</span> in the top header to add your own real reviews as you visit new restrooms around UC campus. You can also click <i class="fa-solid fa-pen-to-square text-amber-400"></i> on any card to update existing entries!
+                    </p>
+                </div>
+            </div>
+            <div class="p-3 bg-slate-950 border-t border-slate-800 text-right">
+                <button id="devModalDismiss" class="px-4 py-1.5 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-semibold transition">Close Overview</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Campus Building Dataset with Exact Coordinates for UC Main Campus
+        const UC_BUILDINGS = [
+            { name: "Tangeman University Center (TUC)", lat: 39.1319, lng: -84.5160 },
+            { name: "Lindner College of Business", lat: 39.1340, lng: -84.5126 },
+            { name: "Engineering Research Center (ERC)", lat: 39.1332, lng: -84.5140 },
+            { name: "Steger Student Life Center", lat: 39.1323, lng: -84.5165 },
+            { name: "Langsam Library", lat: 39.1336, lng: -84.5150 },
+            { name: "Old Chemistry Building", lat: 39.1344, lng: -84.5156 },
+            { name: "Zimmer Hall", lat: 39.1337, lng: -84.5164 },
+            { name: "Teachers-Dyer Complex", lat: 39.1310, lng: -84.5170 },
+            { name: "Braunstein Hall", lat: 39.1348, lng: -84.5150 },
+            { name: "Swift Hall", lat: 39.1330, lng: -84.5156 }
+        ];
+
+        // Default Authentic Pre-Populated Data for UC Campus
+        const DEFAULT_BATHROOMS = [
+            {
+                id: "uc-tuc-3rd",
+                building: "Tangeman University Center (TUC)",
+                floor: "3rd Floor (Near Cinema)",
+                lat: 39.1319,
+                lng: -84.5160,
+                gender: "Gender Neutral / All Gender",
+                cleanliness: 4.8,
+                privacy: "High (Fortress)",
+                noise: "Pin-Drop Quiet",
+                amenities: { feminineProducts: true, accessible: true, hook: true, outlet: true, autoFlush: true, fullDoors: true },
+                review: "Extremely clean single-stall restroom tucked behind the cinema hall. Perfect spot if you want complete peace and quiet during peak campus hours.",
+                secretTag: true
+            },
+            {
+                id: "uc-lindner-4th",
+                building: "Lindner College of Business",
+                floor: "4th Floor Executive Wing",
+                lat: 39.1340,
+                lng: -84.5126,
+                gender: "Single Stall",
+                cleanliness: 5.0,
+                privacy: "High (Fortress)",
+                noise: "Pin-Drop Quiet",
+                amenities: { feminineProducts: true, accessible: true, hook: true, outlet: true, autoFlush: true, fullDoors: true },
+                review: "The crown jewel of UC restrooms! Has modern fixtures, luxury tile, and feminine products. Spotless clean with full height privacy stall doors.",
+                secretTag: true
+            },
+            {
+                id: "uc-langsam-5th",
+                building: "Langsam Library",
+                floor: "5th Floor Stacks Corner",
+                lat: 39.1336,
+                lng: -84.5150,
+                gender: "Women's",
+                cleanliness: 3.8,
+                privacy: "Moderate (Standard)",
+                noise: "Pin-Drop Quiet",
+                amenities: { feminineProducts: false, accessible: true, hook: true, outlet: false, autoFlush: false, fullDoors: false },
+                review: "Good for long study sessions. High privacy since few people venture back to the 5th floor stacks, but aesthetics are slightly dated.",
+                secretTag: false
+            },
+            {
+                id: "uc-erc-1st",
+                building: "Engineering Research Center (ERC)",
+                floor: "1st Floor High Bay Area",
+                lat: 39.1332,
+                lng: -84.5140,
+                gender: "Men's",
+                cleanliness: 4.2,
+                privacy: "Moderate (Standard)",
+                noise: "Moderate Foot Traffic",
+                amenities: { feminineProducts: false, accessible: true, hook: true, outlet: true, autoFlush: true, fullDoors: false },
+                review: "Solid restrooms, well-maintained by janitorial staff. Convenient power outlets near sink counters.",
+                secretTag: false
+            },
+            {
+                id: "uc-steger-2nd",
+                building: "Steger Student Life Center",
+                floor: "2nd Floor Main Concourse",
+                lat: 39.1323,
+                lng: -84.5165,
+                gender: "Gender Neutral / All Gender",
+                cleanliness: 4.5,
+                privacy: "High (Fortress)",
+                noise: "Moderate Foot Traffic",
+                amenities: { feminineProducts: false, accessible: true, hook: true, outlet: true, autoFlush: true, fullDoors: true },
+                review: "Great single-stall gender neutral option right on Main Street. Gets busy around lunch but cleaned very frequently.",
+                secretTag: false
+            }
+        ];
+
+        class RestroomApp {
+            constructor() {
+                this.restrooms = [];
+                this.map = null;
+                this.markers = {};
+                this.activeFilter = 'all';
+                
+                this.initMap();
+                this.initDOM();
+                this.loadData();
+            }
+
+            loadData() {
+                fetch('data.json', { cache: 'no-store' })
+                    .then(response => {
+                        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                        return response.json();
+                    })
+                    .then(data => {
+                    this.restrooms = data.map(item => this.normalizeRecord(item));
+                    this.populateBuildingFilter();
+                    this.render();
+                    })
+                    .catch(error => {
+                    console.error('Unable to load data.json', error);
+                    document.getElementById('restroomList').innerHTML = `
+                        <div class="text-center py-12 px-4 border border-dashed border-red-900 rounded-2xl bg-red-950/20">
+                            <i class="fa-solid fa-triangle-exclamation text-3xl text-red-400 mb-2"></i>
+                            <h4 class="text-sm font-semibold text-slate-300">Unable to Load Restroom Data</h4>
+                            <p class="text-xs text-slate-500 mt-1">Make sure data.json is published beside index.html.</p>
+                        </div>
+                    `;
+                    });
+            }
+
+            normalizeRecord(item) {
+                const amenities = Array.isArray(item.amenities) ? item.amenities : [];
+                const hasAmenity = name => amenities.some(value => value.toLowerCase() === name.toLowerCase());
+                const privacyScore = Number(item.privacy);
+                const noiseScore = Number(item.noise);
+
+                return Object.assign({}, item, {
+                    floor: item.roomNumber ? `${item.floor} (Room ${item.roomNumber})` : item.floor,
+                    gender: (item.gender || '').replace('Gender-Neutral', 'Gender Neutral'),
+                    cleanliness: Number(item.cleanliness) || 0,
+                    privacy: this.rankLabel(privacyScore, 'privacy'),
+                    noise: this.rankLabel(noiseScore, 'noise'),
+                    amenities: {
+                        feminineProducts: hasAmenity('Feminine Products'),
+                        accessible: Boolean(item.ada),
+                        hook: hasAmenity('Bag Hook') || hasAmenity('Coat Rack'),
+                        outlet: hasAmenity('Power Outlets'),
+                        autoFlush: hasAmenity('Automatic Flush'),
+                        fullDoors: hasAmenity('Full Doors')
+                    },
+                    secretTag: privacyScore >= 4.8 || noiseScore <= 1.5
+                });
+            }
+
+            rankLabel(score, type) {
+                if (type === 'privacy') {
+                    if (score >= 4.5) return 'High (Private)';
+                    if (score >= 3) return 'Moderate (Standard)';
+                    return 'Low (High Traffic)';
+                }
+                if (score <= 1.5) return 'Pin-Drop Quiet';
+                if (score <= 3) return 'Moderate Foot Traffic';
+                return 'Very Busy / Echoey';
+            }
+
+            populateBuildingFilter() {
+                const select = document.getElementById('filterBuilding');
+                const buildings = [...new Set(this.restrooms.map(item => item.building))].sort();
+                select.innerHTML = '<option value="ALL">All Buildings</option>';
+                buildings.forEach(building => {
+                    const option = document.createElement('option');
+                    option.value = building;
+                    option.textContent = building;
+                    select.appendChild(option);
+                });
+            }
+
+            initMap() {
+                // Centered on UC Main Campus (Nippert / TUC vicinity)
+                const centerLat = 39.1329;
+                const centerLng = -84.5150;
+
+                this.map = L.map('map', {
+                    zoomControl: false
+                }).setView([centerLat, centerLng], 17);
+
+                // Add dark map tiles for Bearcat dark mode aesthetic
+                L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                    attribution: '&copy; OpenStreetMap &copy; CARTO',
+                    subdomains: 'abcd',
+                    maxZoom: 19
+                }).addTo(this.map);
+
+                // Add Zoom control top right
+                L.control.zoom({ position: 'topright' }).addTo(this.map);
+            }
+
+            initDOM() {
+                // Search & Filter listeners
+                document.getElementById('searchInput').addEventListener('input', () => this.render());
+                document.getElementById('filterBuilding').addEventListener('change', () => this.render());
+                document.getElementById('filterCleanliness').addEventListener('change', () => this.render());
+                document.getElementById('filterGenderNeutral').addEventListener('change', () => this.render());
+                document.getElementById('filterAccessible').addEventListener('change', () => this.render());
+                document.getElementById('filterFeminineProducts').addEventListener('change', () => this.render());
+
+                // Filter Drawer Toggle
+                document.getElementById('filterToggleBtn').addEventListener('click', () => {
+                    document.getElementById('filterDrawer').classList.toggle('hidden');
+                });
+
+                // Quick Filter Chips
+                document.querySelectorAll('.quick-chip').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        document.querySelectorAll('.quick-chip').forEach(c => {
+                            c.classList.remove('bg-uc-red', 'text-white', 'active-chip');
+                            c.classList.add('bg-slate-800', 'text-slate-300');
+                        });
+                        e.target.classList.remove('bg-slate-800', 'text-slate-300');
+                        e.target.classList.add('bg-uc-red', 'text-white', 'active-chip');
+                        this.activeFilter = e.target.dataset.filter;
+                        this.render();
+                    });
+                });
+
+                // Modal controls
+                const modal = document.getElementById('ratingModal');
+                document.getElementById('addBathroomBtn').addEventListener('click', () => document.getElementById('ratingModal').classList.remove('hidden'));
+                document.getElementById('closeModalBtn').addEventListener('click', () => modal.classList.add('hidden'));
+                document.getElementById('cancelFormBtn').addEventListener('click', () => modal.classList.add('hidden'));
+
+                // Dev Specs Modal
+                const devModal = document.getElementById('devModal');
+                document.getElementById('openDevModal').addEventListener('click', () => devModal.classList.remove('hidden'));
+                document.getElementById('closeDevModalBtn').addEventListener('click', () => devModal.classList.add('hidden'));
+                document.getElementById('devModalDismiss').addEventListener('click', () => devModal.classList.add('hidden'));
+
+                // Recenter & Geolocation Buttons
+                document.getElementById('resetMapCenter').addEventListener('click', () => {
+                    this.map.flyTo([39.1329, -84.5150], 17);
+                });
+
+                document.getElementById('locateMeBtn').addEventListener('click', () => this.locateUser());
+            }
+
+            locateUser() {
+                if (!navigator.geolocation) {
+                    alert('Geolocation is not supported by your browser.');
+                    return;
+                }
+                navigator.geolocation.getCurrentPosition(
+                    (pos) => {
+                        const { latitude, longitude } = pos.coords;
+                        this.map.flyTo([latitude, longitude], 18);
+                        
+                        // Add animated position marker
+                        const userIcon = L.divIcon({
+                            className: 'user-marker',
+                            html: `<div class="w-5 h-5 bg-blue-500 border-2 border-white rounded-full user-loc-pulse shadow-lg"></div>`,
+                            iconSize: [20, 20]
+                        });
+                        L.marker([latitude, longitude], { icon: userIcon }).addTo(this.map)
+                            .bindPopup('<div class="text-xs font-bold text-slate-200">📍 You Are Here</div>')
+                            .openPopup();
+                    },
+                    (err) => {
+                        alert('Unable to retrieve location. Defaulting to UC Main Campus view.');
+                    }
+                );
+            }
+
+            getFilteredData() {
+                const query = document.getElementById('searchInput').value.toLowerCase().trim();
+                const buildingFilter = document.getElementById('filterBuilding').value;
+                const minClean = parseFloat(document.getElementById('filterCleanliness').value || 0);
+                const requireGenderNeutral = document.getElementById('filterGenderNeutral').checked;
+                const requireAccessible = document.getElementById('filterAccessible').checked;
+                const requireFeminineProducts = document.getElementById('filterFeminineProducts').checked;
+
+                return this.restrooms.filter(item => {
+                    // Search Query match
+                    const matchesSearch = item.building.toLowerCase().includes(query) ||
+                                         item.floor.toLowerCase().includes(query) ||
+                                         (item.review && item.review.toLowerCase().includes(query));
+
+                    // Building dropdown match
+                    const matchesBuilding = buildingFilter === 'ALL' || item.building === buildingFilter;
+
+                    // Cleanliness score match
+                    const matchesClean = item.cleanliness >= minClean;
+
+                    // Feature checkboxes
+                    const matchesGN = !requireGenderNeutral || item.gender.includes('Gender Neutral') || item.gender.includes('Single Stall');
+                    const matchesADA = !requireAccessible || (item.amenities && item.amenities.accessible);
+                    const matchesFeminineProducts = !requireFeminineProducts || (item.amenities && item.amenities.feminineProducts);
+
+                    // Quick Chips logic
+                    let matchesChip = true;
+                    if (this.activeFilter === 'top') matchesChip = item.cleanliness >= 4.5;
+                    if (this.activeFilter === 'quiet') matchesChip = item.privacy && item.privacy.includes('High');
+                    if (this.activeFilter === 'neutral') matchesChip = item.gender.includes('Gender Neutral') || item.gender.includes('Single Stall');
+
+                    return matchesSearch && matchesBuilding && matchesClean && matchesGN && matchesADA && matchesFeminineProducts && matchesChip;
+                });
+            }
+
+            render() {
+                const filtered = this.getFilteredData();
+
+                // Update Stats Dashboard
+                this.updateStats();
+
+                // Render Map Markers
+                this.updateMapMarkers(filtered);
+
+                // Render Restroom Directory List Cards
+                const listEl = document.getElementById('restroomList');
+                listEl.innerHTML = '';
+
+                document.getElementById('resultCount').textContent = `Showing ${filtered.length} of ${this.restrooms.length} restrooms`;
+
+                if (filtered.length === 0) {
+                    listEl.innerHTML = `
+                        <div class="text-center py-12 px-4 border border-dashed border-slate-800 rounded-2xl bg-slate-950/50">
+                            <i class="fa-solid fa-toilet-paper text-3xl text-slate-600 mb-2"></i>
+                            <h4 class="text-sm font-semibold text-slate-300">No Restrooms Match Criteria</h4>
+                            <p class="text-xs text-slate-500 mt-1">Try adjusting filters or rate a new restroom!</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                filtered.forEach(item => {
+                    const card = document.createElement('div');
+                    card.className = "bg-slate-950 border border-slate-800 hover:border-slate-700 p-4 rounded-xl shadow-md transition group relative flex flex-col justify-between";
+                    
+                    // Amenities Pills HTML
+                    const amenitiesList = [];
+                    if (item.amenities?.feminineProducts) amenitiesList.push('<span class="bg-pink-950 text-pink-300 border border-pink-800/40 text-[10px] px-2 py-0.5 rounded-md">🩸 Feminine Products</span>');
+                    if (item.amenities?.accessible) amenitiesList.push('<span class="bg-blue-950 text-blue-300 border border-blue-800/40 text-[10px] px-2 py-0.5 rounded-md">♿ ADA</span>');
+                    if (item.amenities?.hook) amenitiesList.push('<span class="bg-slate-800 text-slate-300 text-[10px] px-2 py-0.5 rounded-md">🎒 Bag Hook</span>');
+                    if (item.amenities?.outlet) amenitiesList.push('<span class="bg-amber-950 text-amber-300 border border-amber-800/40 text-[10px] px-2 py-0.5 rounded-md">🔌 Outlet</span>');
+                    if (item.amenities?.fullDoors) amenitiesList.push('<span class="bg-emerald-950 text-emerald-300 border border-emerald-800/40 text-[10px] px-2 py-0.5 rounded-md">🚪 Private Stall</span>');
+
+                    card.innerHTML = `
+                        <div>
+                            <div class="flex items-start justify-between gap-2">
+                                <div>
+                                    <span class="text-[10px] font-bold uppercase tracking-wider text-uc-red block">${item.building}</span>
+                                    <h3 class="text-sm font-bold text-white group-hover:text-uc-red transition">${item.floor}</h3>
+                                </div>
+                                <div class="flex items-center gap-1 bg-amber-500/10 border border-amber-500/20 text-amber-400 font-bold text-xs px-2 py-1 rounded-lg shrink-0">
+                                    <i class="fa-solid fa-star text-amber-400 text-[10px]"></i>
+                                    <span>${parseFloat(item.cleanliness).toFixed(1)}</span>
+                                </div>
+                            </div>
+
+                            <!-- Badges -->
+                            <div class="flex flex-wrap gap-1.5 mt-2">
+                                <span class="bg-slate-900 border border-slate-800 text-slate-300 text-[10px] px-2 py-0.5 rounded-md font-medium">
+                                    <i class="fa-solid fa-restroom text-slate-400 mr-1"></i>${item.gender}
+                                </span>
+                                <span class="bg-slate-900 border border-slate-800 text-slate-300 text-[10px] px-2 py-0.5 rounded-md font-medium">
+                                    <i class="fa-solid fa-shield-halved text-slate-400 mr-1"></i>${item.privacy || 'Standard Privacy'}
+                                </span>
+                                ${item.secretTag ? '<span class="bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[10px] px-2 py-0.5 rounded-md font-bold">🤫 Secret Gem</span>' : ''}
+                            </div>
+
+                            <!-- Review Body -->
+                            <p class="text-xs text-slate-300 mt-3 leading-relaxed bg-slate-900/50 p-2.5 rounded-lg border border-slate-850 italic">
+                                "${item.review || 'No review notes provided.'}"
+                            </p>
+
+                            <!-- Amenities Tags -->
+                            <div class="flex flex-wrap gap-1.5 mt-3">
+                                ${amenitiesList.join('')}
+                            </div>
+                        </div>
+
+                        <!-- Card Action Buttons -->
+                        <div class="flex items-center justify-between border-t border-slate-800/80 pt-3 mt-3 text-xs">
+                            <button class="focus-map-btn text-xs text-slate-400 hover:text-white font-medium flex items-center gap-1" data-id="${item.id}">
+                                <i class="fa-solid fa-map-pin text-uc-red"></i> Focus on Map
+                            </button>
+                        </div>
+                    `;
+
+                    listEl.appendChild(card);
+                });
+
+                // Attach Card Button Listeners
+                document.querySelectorAll('.focus-map-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const id = e.currentTarget.dataset.id;
+                        this.focusOnRestroom(id);
+                    });
+                });
+            }
+
+            updateMapMarkers(items) {
+                // Clear existing markers
+                Object.values(this.markers).forEach(m => this.map.removeLayer(m));
+                this.markers = {};
+
+                items.forEach(item => {
+                    const customIcon = L.divIcon({
+                        className: 'custom-map-pin',
+                        html: `
+                            <div class="custom-map-marker w-8 h-8 font-bold text-xs shadow-xl cursor-pointer">
+                                <i class="fa-solid fa-toilet"></i>
+                            </div>
+                        `,
+                        iconSize: [32, 32],
+                        iconAnchor: [16, 16]
+                    });
+
+                    const marker = L.marker([item.lat, item.lng], { icon: customIcon }).addTo(this.map);
+
+                    // Popup Content
+                    const popupHTML = `
+                        <div class="p-1 max-w-xs">
+                            <span class="text-[10px] font-bold text-uc-red uppercase tracking-wider">${item.building}</span>
+                            <h4 class="text-xs font-bold text-white mb-1">${item.floor}</h4>
+                            <div class="flex items-center gap-1 text-amber-400 text-xs font-bold mb-1.5">
+                                <span>★ ${parseFloat(item.cleanliness).toFixed(1)} Cleanliness</span>
+                            </div>
+                            <p class="text-[11px] text-slate-300 italic mb-2">"${item.review?.substring(0, 75) || ''}..."</p>
+                            <button onclick="window.app.focusOnRestroom('${item.id}')" class="w-full bg-uc-red hover:bg-uc-darkred text-white py-1 px-2 rounded text-[11px] font-bold transition">
+                                View Details
+                            </button>
+                        </div>
+                    `;
+
+                    marker.bindPopup(popupHTML);
+                    this.markers[item.id] = marker;
+                });
+            }
+
+            updateStats() {
+                const total = this.restrooms.length;
+                document.getElementById('statTotal').textContent = total;
+
+                if (total === 0) {
+                    document.getElementById('statAvgClean').textContent = '0.0 ★';
+                    document.getElementById('statSecret').textContent = 'None';
+                    document.getElementById('statTopBuilding').textContent = 'None';
+                    return;
+                }
+
+                // Average cleanliness
+                const avg = this.restrooms.reduce((acc, r) => acc + parseFloat(r.cleanliness), 0) / total;
+                document.getElementById('statAvgClean').textContent = `${avg.toFixed(1)} ★`;
+
+                // Secret gem restroom
+                const secret = this.restrooms.find(r => r.secretTag) || this.restrooms[0];
+                document.getElementById('statSecret').textContent = secret ? secret.building.split(' ')[0] : 'None';
+
+                // Highest rated building
+                const highest = [...this.restrooms].sort((a, b) => b.cleanliness - a.cleanliness)[0];
+                document.getElementById('statTopBuilding').textContent = highest ? highest.building.split(' ')[0] : 'None';
+            }
+
+            focusOnRestroom(id) {
+                const item = this.restrooms.find(r => r.id === id);
+                if (item && this.map && this.markers[id]) {
+                    this.map.flyTo([item.lat, item.lng], 18, { duration: 1 });
+                    this.markers[id].openPopup();
+                }
+            }
+
+        }
+
+        window.addEventListener('load', () => {
+            window.app = new RestroomApp();
+        });
+    </script>
+</body>
+</html>
