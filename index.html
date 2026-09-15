@@ -422,6 +422,7 @@
                 <div id="jsonOutputPanel" class="hidden space-y-2">
                     <div class="flex items-center justify-between"><strong class="text-white">Generated JSON</strong><button type="button" id="copyJsonBtn" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700"><i class="fa-regular fa-copy mr-1"></i> Copy</button></div>
                     <textarea id="jsonOutput" readonly rows="12" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-[11px] leading-relaxed text-emerald-300 font-mono focus:outline-none"></textarea>
+                    <a id="openGoogleFormBtn" href="https://forms.gle/PYAoSnHYbvv6SBXJ7" target="_blank" rel="noopener noreferrer" class="block w-full text-center py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold transition"><i class="fa-solid fa-arrow-up-right-from-square mr-1"></i> Open Google Form to Submit</a>
                     <p id="copyStatus" class="text-[11px] text-emerald-400"></p>
                 </div>
                 <button type="button" id="cancelFormBtn" class="w-full py-2 rounded-xl border border-slate-700 text-xs font-semibold text-slate-300 hover:bg-slate-800 transition">Close</button>
@@ -750,10 +751,7 @@
                 // Modal controls
                 const modal = document.getElementById('ratingModal');
                 const ratingButton = document.getElementById('addBathroomBtn');
-                const closeRatingModal = () => {
-                    modal.classList.add('hidden');
-                    ratingButton.focus();
-                };
+                const closeRatingModal = () => modal.classList.add('hidden');
                 ratingButton.addEventListener('click', () => {
                     modal.classList.remove('hidden');
                     document.querySelector('[name="building"]').focus();
@@ -1003,8 +1001,18 @@
                 Object.values(this.markers).forEach(m => this.map.removeLayer(m));
                 this.markers = {};
 
+                const buildingGroups = new Map();
                 items.forEach(item => {
-                    const mapPosition = this.getMapPosition(item);
+                    const coordinates = BUILDING_COORDINATES[item.building];
+                    const key = coordinates ? `${coordinates.lat},${coordinates.lng}` : `${item.lat},${item.lng}`;
+                    if (!buildingGroups.has(key)) buildingGroups.set(key, { item, coordinates, bathrooms: [] });
+                    buildingGroups.get(key).bathrooms.push(item);
+                });
+
+                buildingGroups.forEach(({ item, coordinates, bathrooms }) => {
+                    const mapPosition = coordinates
+                        ? [coordinates.lat, coordinates.lng]
+                        : [Number(item.lat), Number(item.lng)];
                     const customIcon = L.divIcon({
                         className: 'custom-map-pin',
                         html: `
@@ -1019,35 +1027,41 @@
 
                     const marker = L.marker(mapPosition, { icon: customIcon }).addTo(this.map);
 
-                    // Popup Content
-                    const amenities = item.amenityLabels.length
-                        ? item.amenityLabels.map(amenity => `<span class="inline-block bg-slate-800 text-slate-300 px-1.5 py-0.5 rounded mr-1 mb-1">${this.escapeHtml(amenity)}</span>`).join('')
-                        : '<span class="text-slate-500">None listed</span>';
+                    const bathroomDetails = bathrooms.map(bathroom => {
+                        const amenities = bathroom.amenityLabels.length
+                            ? bathroom.amenityLabels.map(amenity => `<span class="inline-block bg-slate-800 text-slate-300 px-1.5 py-0.5 rounded mr-1 mb-1">${this.escapeHtml(amenity)}</span>`).join('')
+                            : '<span class="text-slate-500">None listed</span>';
+                        return `
+                            <article class="border-t border-slate-700 pt-2 mt-2">
+                                <h4 class="text-sm font-bold text-white">${this.escapeHtml(bathroom.floor || 'Restroom')}</h4>
+                                <div class="grid grid-cols-3 gap-1 my-2 text-center">
+                                    <div class="bg-slate-900 rounded p-1"><div class="text-amber-400 font-bold">${Number(bathroom.cleanliness).toFixed(1)}</div><div class="text-[9px] text-slate-500">Clean</div></div>
+                                    <div class="bg-slate-900 rounded p-1"><div class="text-slate-200 font-bold">${Number(bathroom.privacyScore).toFixed(1)}</div><div class="text-[9px] text-slate-500">Privacy</div></div>
+                                    <div class="bg-slate-900 rounded p-1"><div class="text-slate-200 font-bold">${Number(bathroom.noiseScore).toFixed(1)}</div><div class="text-[9px] text-slate-500">Noise</div></div>
+                                </div>
+                                <div class="space-y-1 text-slate-300">
+                                    <div><span class="text-slate-500">Gender:</span> ${this.escapeHtml(bathroom.gender || 'Not listed')}</div>
+                                    <div><span class="text-slate-500">ADA:</span> ${bathroom.ada ? 'Yes' : 'No'} <span class="text-slate-500 ml-2">Vibe:</span> ${this.escapeHtml(bathroom.vibe || 'Not listed')}</div>
+                                    <div><span class="text-slate-500">Rated by:</span> ${this.escapeHtml(bathroom.ratedBy || 'Olivia')}</div>
+                                    <div><span class="text-slate-500">Date:</span> ${this.escapeHtml(bathroom.dateRated || bathroom.lastUpdated || 'Not listed')}</div>
+                                </div>
+                                <div class="mt-2"><div class="text-[10px] text-slate-500 mb-1">Amenities</div>${amenities}</div>
+                                <p class="text-[11px] text-slate-300 italic mt-2">"${this.escapeHtml(bathroom.review || 'No review notes provided.')}"</p>
+                            </article>
+                        `;
+                    }).join('');
                     const popupHTML = `
                         <div class="p-1 w-64 text-xs">
                             <span class="text-[10px] font-bold text-uc-red uppercase tracking-wider">${this.escapeHtml(item.building)}</span>
-                            <h4 class="text-sm font-bold text-white mb-2">${this.escapeHtml(item.floor || 'Restroom')}</h4>
-                            <div class="grid grid-cols-3 gap-1 mb-2 text-center">
-                                <div class="bg-slate-900 rounded p-1"><div class="text-amber-400 font-bold">${Number(item.cleanliness).toFixed(1)}</div><div class="text-[9px] text-slate-500">Clean</div></div>
-                                <div class="bg-slate-900 rounded p-1"><div class="text-slate-200 font-bold">${Number(item.privacyScore).toFixed(1)}</div><div class="text-[9px] text-slate-500">Privacy</div></div>
-                                <div class="bg-slate-900 rounded p-1"><div class="text-slate-200 font-bold">${Number(item.noiseScore).toFixed(1)}</div><div class="text-[9px] text-slate-500">Noise</div></div>
-                            </div>
-                            <div class="space-y-1.5 text-slate-300">
-                                <div><span class="text-slate-500">Gender:</span> ${this.escapeHtml(item.gender || 'Not listed')}</div>
-                                <div><span class="text-slate-500">ADA:</span> ${item.ada ? 'Yes' : 'No'} <span class="text-slate-500 ml-2">Vibe:</span> ${this.escapeHtml(item.vibe || 'Not listed')}</div>
-                                <div><span class="text-slate-500">Rated by:</span> ${this.escapeHtml(item.ratedBy || 'Olivia')}</div>
-                                <div><span class="text-slate-500">Date:</span> ${this.escapeHtml(item.dateRated || item.lastUpdated || 'Not listed')}</div>
-                            </div>
-                            <div class="mt-2"><div class="text-[10px] text-slate-500 mb-1">Amenities</div>${amenities}</div>
-                            <p class="text-[11px] text-slate-300 italic mt-2 border-t border-slate-700 pt-2">"${this.escapeHtml(item.review || 'No review notes provided.')}"</p>
-                            <button onclick="window.app.focusOnRestroom('${this.escapeHtml(item.id)}')" class="w-full bg-uc-red hover:bg-uc-darkred text-white py-1 px-2 rounded text-[11px] font-bold transition">
-                                Focus This Bathroom
-                            </button>
+                            <h4 class="text-sm font-bold text-white mb-1">${bathrooms.length} bathroom${bathrooms.length === 1 ? '' : 's'} here</h4>
+                            ${bathroomDetails}
                         </div>
                     `;
 
                     marker.bindPopup(popupHTML);
-                    this.markers[item.id] = marker;
+                    bathrooms.forEach(bathroom => {
+                        this.markers[bathroom.id] = marker;
+                    });
                 });
             }
 
