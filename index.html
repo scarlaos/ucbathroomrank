@@ -140,18 +140,98 @@
             border-color: #E00122;
             color: #fff;
         }
+
+        @media (max-width: 640px) {
+            body {
+                overflow: auto;
+            }
+
+            header .header-inner {
+                height: auto;
+                min-height: 4rem;
+                padding-top: 0.75rem;
+                padding-bottom: 0.75rem;
+                align-items: flex-start;
+            }
+
+            header .brand-copy p {
+                display: none;
+            }
+
+            header .brand-copy h1 {
+                font-size: 0.875rem;
+                line-height: 1.25rem;
+            }
+
+            header .header-actions {
+                gap: 0.25rem;
+            }
+
+            header .portfolio-button {
+                display: none;
+            }
+
+            header .brand-copy {
+                min-width: 0;
+            }
+
+            header .header-actions button {
+                padding: 0.5rem;
+                min-width: 2.25rem;
+                justify-content: center;
+            }
+
+            main {
+                overflow-y: auto;
+            }
+
+            .map-panel {
+                height: 38vh;
+                min-height: 240px;
+            }
+
+            .directory-panel {
+                height: 62vh;
+                min-height: 420px;
+                border-left: 0;
+                border-top: 1px solid #1e293b;
+            }
+
+            .map-control {
+                bottom: 0.75rem;
+                left: 0.75rem;
+            }
+
+            .map-control button {
+                padding: 0.5rem 0.625rem;
+            }
+
+            .modal-panel {
+                max-height: calc(100dvh - 1rem);
+                margin: 0.5rem 0;
+                border-radius: 1rem;
+            }
+
+            .rating-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .amenity-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
     </style>
 </head>
 <body class="h-full flex flex-col bg-slate-950 text-slate-100 overflow-hidden">
 
     <!-- Header -->
     <header class="bg-slate-900 border-b border-slate-800 z-30 shrink-0 shadow-lg">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+        <div class="header-inner max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
             <div class="flex items-center space-x-3">
                 <div class="w-10 h-10 rounded-xl bg-uc-red flex items-center justify-center text-white font-extrabold text-xl shadow-md shadow-uc-red/30">
                     <i class="fa-solid fa-restroom"></i>
                 </div>
-                <div>
+                <div class="brand-copy">
                     <h1 class="text-lg font-bold tracking-tight text-white flex items-center gap-2">
                         UC Restroom Index 
                         <span class="bg-uc-red/20 text-uc-red text-xs px-2 py-0.5 rounded-full font-semibold border border-uc-red/30">UC Campus</span>
@@ -160,28 +240,28 @@
                 </div>
             </div>
 
-            <div class="flex items-center space-x-2 sm:space-x-3">
+            <div class="header-actions flex items-center space-x-2 sm:space-x-3">
                 <button id="locateMeBtn" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 flex items-center gap-2 transition">
                     <i class="fa-solid fa-location-crosshairs text-uc-red"></i>
                     <span class="hidden sm:inline">Locate Me</span>
                 </button>
-                <button id="openDevModal" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 flex items-center gap-2 transition">
+                <button id="openDevModal" class="portfolio-button px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 flex items-center gap-2 transition">
                     <i class="fa-solid fa-code text-indigo-400"></i>
                     <span class="hidden sm:inline">Portfolio Specs</span>
                 </button>
-                <button id="addBathroomBtn" class="px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-uc-red hover:bg-uc-darkred text-white shadow-md shadow-uc-red/20 flex items-center gap-2 transition transform active:scale-95">
-                    <i class="fa-solid fa-plus"></i>
+                <a id="addBathroomBtn" href="https://forms.gle/PYAoSnHYbvv6SBXJ7" target="_blank" rel="noopener noreferrer" title="Open the restroom rating form" class="px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-uc-red hover:bg-uc-darkred text-white shadow-md shadow-uc-red/20 flex items-center gap-2 transition transform active:scale-95">
+                    <i class="fa-solid fa-star"></i>
                     <span>Rate Restroom</span>
-                </button>
+                </a>
             </div>
         </div>
     </header>
 
     <!-- Main Content Grid -->
-    <div class="flex-1 flex flex-col lg:flex-row overflow-hidden relative">
+    <main class="flex-1 flex flex-col lg:flex-row overflow-hidden relative">
 
         <!-- Left Column: Map View -->
-        <div class="w-full lg:w-3/5 h-64 lg:h-auto relative flex-shrink-0">
+        <div class="map-panel w-full lg:w-3/5 h-64 lg:h-auto relative flex-shrink-0">
             <div id="map" class="w-full h-full z-10 bg-slate-900"></div>
 
             <!-- Floating Quick Stats Widget -->
@@ -208,7 +288,7 @@
             </div>
 
             <!-- Map Controls Overlay -->
-            <div class="absolute bottom-4 left-4 z-20 flex gap-2">
+            <div class="map-control absolute bottom-4 left-4 z-20 flex gap-2">
                 <button id="resetMapCenter" class="glass-panel text-slate-200 hover:text-white px-3 py-1.5 rounded-lg text-xs font-medium border border-slate-700 flex items-center gap-1.5 shadow-md">
                     <i class="fa-solid fa-bullseye text-uc-red"></i> Recenter UC Main
                 </button>
@@ -216,7 +296,7 @@
         </div>
 
         <!-- Right Column: Sidebar Restroom Directory -->
-        <div class="w-full lg:w-2/5 flex flex-col h-full bg-slate-900 border-l border-slate-800 overflow-hidden">
+        <div class="directory-panel w-full lg:w-2/5 flex flex-col h-full bg-slate-900 border-l border-slate-800 overflow-hidden">
 
             <div class="p-4 border-b border-slate-800 bg-slate-900/90 space-y-3">
                 <div class="flex items-center gap-2">
@@ -279,11 +359,11 @@
                 <span class="text-slate-400">Loaded from data.json</span>
             </div>
         </div>
-    </div>
+    </main>
 
     <!-- Modal: Generate a data.json review -->
     <div id="ratingModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm hidden overflow-y-auto">
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl my-8">
+        <div class="modal-panel bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl my-8">
             <div class="bg-gradient-to-r from-slate-900 via-slate-850 to-slate-900 p-4 border-b border-slate-800 flex justify-between items-center">
                 <h3 class="text-base font-bold text-white flex items-center gap-2">
                     <i class="fa-solid fa-star text-uc-red"></i> Rate a Restroom
@@ -294,7 +374,7 @@
             </div>
 
             <div class="p-5 space-y-4 max-h-[80vh] overflow-y-auto text-xs text-slate-300">
-                <form id="ratingForm" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <form id="ratingForm" class="rating-grid grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <label class="sm:col-span-2">Building<select required name="building" class="form-input"><option value="">Choose a building</option><option>Tangeman University Center (TUC)</option><option>Lindner College of Business</option><option>Carl H. Lindner Hall</option><option>Engineering Research Center (ERC)</option><option>Langsam Library</option><option>Old Chemistry Building</option><option>Steger Student Life Center</option><option>Swift Hall</option><option>Zimmer Hall</option><option>Teachers-Dyer Complex</option><option>Teachers College</option><option>Braunstein Hall</option></select></label>
                     <label>Floor<select required name="floor" class="form-input"><option value="">Choose a floor</option><option>1st Floor</option><option>2nd Floor</option><option>3rd Floor</option><option>4th Floor</option><option>5th Floor</option></select></label>
                     <label>Gender<select required name="gender" class="form-input"><option>Gender-Neutral</option><option>Women's</option><option>Men's</option><option>Single Stall</option></select></label>
@@ -304,7 +384,7 @@
                     <label>Cleanliness (1-5)<select required name="cleanliness" class="form-input"><option value="5">5.0 - Exceptional</option><option value="4.5">4.5 - Excellent</option><option value="4">4.0 - Good</option><option value="3.5">3.5 - Fair</option><option value="3">3.0 - Acceptable</option><option value="2">2.0 - Needs attention</option><option value="1">1.0 - Poor</option></select></label>
                     <label>Privacy (1-5)<select required name="privacy" class="form-input"><option value="5">5.0 - Very private</option><option value="4.5">4.5 - Highly private</option><option value="4">4.0 - Private</option><option value="3">3.0 - Standard</option><option value="2">2.0 - Exposed</option><option value="1">1.0 - Very exposed</option></select></label>
                     <label>Noise (1-5)<select required name="noise" class="form-input"><option value="1">1.0 - Pin-drop quiet</option><option value="2">2.0 - Quiet</option><option value="3">3.0 - Moderate</option><option value="4">4.0 - Busy</option><option value="5">5.0 - Very busy</option></select></label>
-                    <fieldset class="sm:col-span-2"><legend>Amenities</legend><div class="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-1"><label class="amenity-option"><input type="checkbox" name="amenities" value="Feminine Products"> Feminine Products</label><label class="amenity-option"><input type="checkbox" name="amenities" value="Full Doors"> Full Doors</label><label class="amenity-option"><input type="checkbox" name="amenities" value="Bag Hook"> Bag Hook</label><label class="amenity-option"><input type="checkbox" name="amenities" value="Power Outlets"> Power Outlets</label><label class="amenity-option"><input type="checkbox" name="amenities" value="Coat Rack"> Coat Rack</label><label class="amenity-option"><input type="checkbox" name="amenities" value="Touchless Faucets"> Touchless Faucets</label><label class="amenity-option"><input type="checkbox" name="amenities" value="Automatic Soap"> Automatic Soap</label><label class="amenity-option"><input type="checkbox" name="amenities" value="Automatic Flush"> Automatic Flush</label><label class="amenity-option"><input type="checkbox" name="amenities" value="Hand Dryer"> Hand Dryer</label><label class="amenity-option"><input type="checkbox" name="amenities" value="Paper Towels"> Paper Towels</label><label class="amenity-option"><input type="checkbox" name="amenities" value="Full-Length Mirror"> Full-Length Mirror</label><label class="amenity-option"><input type="checkbox" name="amenities" value="ADA Accessible"> ADA Accessible</label></div></fieldset>
+                    <fieldset class="sm:col-span-2"><legend>Amenities</legend><div class="amenity-grid grid grid-cols-2 sm:grid-cols-3 gap-2 mt-1"><label class="amenity-option"><input type="checkbox" name="amenities" value="Feminine Products"> Feminine Products</label><label class="amenity-option"><input type="checkbox" name="amenities" value="Full Doors"> Full Doors</label><label class="amenity-option"><input type="checkbox" name="amenities" value="Bag Hook"> Bag Hook</label><label class="amenity-option"><input type="checkbox" name="amenities" value="Power Outlets"> Power Outlets</label><label class="amenity-option"><input type="checkbox" name="amenities" value="Coat Rack"> Coat Rack</label><label class="amenity-option"><input type="checkbox" name="amenities" value="Touchless Faucets"> Touchless Faucets</label><label class="amenity-option"><input type="checkbox" name="amenities" value="Automatic Soap"> Automatic Soap</label><label class="amenity-option"><input type="checkbox" name="amenities" value="Automatic Flush"> Automatic Flush</label><label class="amenity-option"><input type="checkbox" name="amenities" value="Hand Dryer"> Hand Dryer</label><label class="amenity-option"><input type="checkbox" name="amenities" value="Paper Towels"> Paper Towels</label><label class="amenity-option"><input type="checkbox" name="amenities" value="Full-Length Mirror"> Full-Length Mirror</label><label class="amenity-option"><input type="checkbox" name="amenities" value="ADA Accessible"> ADA Accessible</label></div></fieldset>
                     <label class="sm:col-span-2">Review<textarea required name="review" rows="3" placeholder="What stood out about this restroom?" class="form-input"></textarea></label>
                     <button type="submit" class="sm:col-span-2 py-2 rounded-xl bg-uc-red hover:bg-uc-darkred text-white font-semibold transition"><i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Generate JSON</button>
                 </form>
@@ -320,7 +400,7 @@
 
     <!-- Modal: Developer Portfolio Technical Specs -->
     <div id="devModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm hidden">
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-xl overflow-hidden shadow-2xl">
+        <div class="modal-panel bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-xl overflow-hidden shadow-2xl">
             <div class="p-4 border-b border-slate-800 flex justify-between items-center bg-slate-950">
                 <div class="flex items-center gap-2">
                     <i class="fa-solid fa-laptop-code text-indigo-400"></i>
@@ -486,7 +566,11 @@
                         return response.json();
                     })
                     .then(data => {
-                    this.restrooms = data.map(item => this.normalizeRecord(item));
+                    const savedReviews = this.getSavedReviews();
+                    const records = [...data, ...savedReviews].filter((item, index, all) =>
+                        all.findIndex(candidate => candidate.id === item.id) === index
+                    );
+                    this.restrooms = records.map(item => this.normalizeRecord(item));
                     this.populateBuildingFilter();
                     this.render();
                     })
@@ -502,6 +586,14 @@
                     });
             }
 
+            getSavedReviews() {
+                try {
+                    return JSON.parse(localStorage.getItem('uc-restroom-reviews') || '[]');
+                } catch (error) {
+                    return [];
+                }
+            }
+
             normalizeRecord(item) {
                 const amenities = Array.isArray(item.amenities) ? item.amenities : [];
                 const hasAmenity = name => amenities.some(value => value.toLowerCase() === name.toLowerCase());
@@ -515,6 +607,8 @@
                     floor: item.roomNumber ? `${item.floor} (Room ${item.roomNumber})` : item.floor,
                     gender: (item.gender || '').replace('Gender-Neutral', 'Gender Neutral'),
                     cleanliness: Number(item.cleanliness) || 0,
+                    privacyScore,
+                    noiseScore,
                     privacy: this.rankLabel(privacyScore, 'privacy'),
                     noise: this.rankLabel(noiseScore, 'noise'),
                     amenities: {
@@ -525,6 +619,8 @@
                         autoFlush: hasAmenity('Automatic Flush'),
                         fullDoors: hasAmenity('Full Doors')
                     },
+                    amenityLabels: amenities,
+                    ratedBy: item.ratedBy || 'Olivia',
                     secretTag: privacyScore >= 4.8 || noiseScore <= 1.5
                 });
             }
@@ -601,7 +697,6 @@
 
                 // Modal controls
                 const modal = document.getElementById('ratingModal');
-                document.getElementById('addBathroomBtn').addEventListener('click', () => document.getElementById('ratingModal').classList.remove('hidden'));
                 document.getElementById('closeModalBtn').addEventListener('click', () => modal.classList.add('hidden'));
                 document.getElementById('cancelFormBtn').addEventListener('click', () => modal.classList.add('hidden'));
 
@@ -655,7 +750,7 @@
                 const building = formData.get('building').trim();
                 const dateRated = formData.get('dateRated');
                 const ratedBy = formData.get('ratedBy').trim();
-                const idBase = `${building}-${dateRated}-${ratedBy}`.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+                const idBase = `${building}-${dateRated}-${ratedBy}-${Date.now()}`.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
                 const amenities = formData.getAll('amenities');
                 const coordinates = BUILDING_COORDINATES[building];
                 const review = {
@@ -676,6 +771,13 @@
                     ratedBy,
                     lastUpdated: dateRated
                 };
+
+                const savedReviews = this.getSavedReviews().filter(item => item.id !== review.id);
+                localStorage.setItem('uc-restroom-reviews', JSON.stringify([...savedReviews, review]));
+                this.restrooms = this.restrooms.filter(item => item.id !== review.id);
+                this.restrooms.push(this.normalizeRecord(review));
+                this.populateBuildingFilter();
+                this.render();
 
                 document.getElementById('jsonOutput').value = JSON.stringify(review, null, 2);
                 document.getElementById('jsonOutputPanel').classList.remove('hidden');
@@ -786,6 +888,9 @@
                                 <span class="bg-slate-900 border border-slate-800 text-slate-300 text-[10px] px-2 py-0.5 rounded-md font-medium">
                                     <i class="fa-solid fa-shield-halved text-slate-400 mr-1"></i>${item.privacy || 'Standard Privacy'}
                                 </span>
+                                <span class="bg-slate-900 border border-slate-800 text-slate-400 text-[10px] px-2 py-0.5 rounded-md font-medium">
+                                    <i class="fa-solid fa-user text-slate-500 mr-1"></i>Rated by ${item.ratedBy || 'Olivia'}
+                                </span>
                                 ${item.secretTag ? '<span class="bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[10px] px-2 py-0.5 rounded-md font-bold">🤫 Secret Gem</span>' : ''}
                             </div>
 
@@ -826,6 +931,7 @@
                 this.markers = {};
 
                 items.forEach(item => {
+                    const mapPosition = this.getMapPosition(item);
                     const customIcon = L.divIcon({
                         className: 'custom-map-pin',
                         html: `
@@ -838,19 +944,31 @@
                         popupAnchor: [0, -18]
                     });
 
-                    const marker = L.marker([item.lat, item.lng], { icon: customIcon }).addTo(this.map);
+                    const marker = L.marker(mapPosition, { icon: customIcon }).addTo(this.map);
 
                     // Popup Content
+                    const amenities = item.amenityLabels.length
+                        ? item.amenityLabels.map(amenity => `<span class="inline-block bg-slate-800 text-slate-300 px-1.5 py-0.5 rounded mr-1 mb-1">${this.escapeHtml(amenity)}</span>`).join('')
+                        : '<span class="text-slate-500">None listed</span>';
                     const popupHTML = `
-                        <div class="p-1 max-w-xs">
-                            <span class="text-[10px] font-bold text-uc-red uppercase tracking-wider">${item.building}</span>
-                            <h4 class="text-xs font-bold text-white mb-1">${item.floor}</h4>
-                            <div class="flex items-center gap-1 text-amber-400 text-xs font-bold mb-1.5">
-                                <span>★ ${parseFloat(item.cleanliness).toFixed(1)} Cleanliness</span>
+                        <div class="p-1 w-64 text-xs">
+                            <span class="text-[10px] font-bold text-uc-red uppercase tracking-wider">${this.escapeHtml(item.building)}</span>
+                            <h4 class="text-sm font-bold text-white mb-2">${this.escapeHtml(item.floor || 'Restroom')}</h4>
+                            <div class="grid grid-cols-3 gap-1 mb-2 text-center">
+                                <div class="bg-slate-900 rounded p-1"><div class="text-amber-400 font-bold">${Number(item.cleanliness).toFixed(1)}</div><div class="text-[9px] text-slate-500">Clean</div></div>
+                                <div class="bg-slate-900 rounded p-1"><div class="text-slate-200 font-bold">${Number(item.privacyScore).toFixed(1)}</div><div class="text-[9px] text-slate-500">Privacy</div></div>
+                                <div class="bg-slate-900 rounded p-1"><div class="text-slate-200 font-bold">${Number(item.noiseScore).toFixed(1)}</div><div class="text-[9px] text-slate-500">Noise</div></div>
                             </div>
-                            <p class="text-[11px] text-slate-300 italic mb-2">"${item.review?.substring(0, 75) || ''}..."</p>
-                            <button onclick="window.app.focusOnRestroom('${item.id}')" class="w-full bg-uc-red hover:bg-uc-darkred text-white py-1 px-2 rounded text-[11px] font-bold transition">
-                                View Details
+                            <div class="space-y-1.5 text-slate-300">
+                                <div><span class="text-slate-500">Gender:</span> ${this.escapeHtml(item.gender || 'Not listed')}</div>
+                                <div><span class="text-slate-500">ADA:</span> ${item.ada ? 'Yes' : 'No'} <span class="text-slate-500 ml-2">Vibe:</span> ${this.escapeHtml(item.vibe || 'Not listed')}</div>
+                                <div><span class="text-slate-500">Rated by:</span> ${this.escapeHtml(item.ratedBy || 'Olivia')}</div>
+                                <div><span class="text-slate-500">Date:</span> ${this.escapeHtml(item.dateRated || item.lastUpdated || 'Not listed')}</div>
+                            </div>
+                            <div class="mt-2"><div class="text-[10px] text-slate-500 mb-1">Amenities</div>${amenities}</div>
+                            <p class="text-[11px] text-slate-300 italic mt-2 border-t border-slate-700 pt-2">"${this.escapeHtml(item.review || 'No review notes provided.')}"</p>
+                            <button onclick="window.app.focusOnRestroom('${this.escapeHtml(item.id)}')" class="w-full bg-uc-red hover:bg-uc-darkred text-white py-1 px-2 rounded text-[11px] font-bold transition">
+                                Focus This Bathroom
                             </button>
                         </div>
                     `;
@@ -858,6 +976,37 @@
                     marker.bindPopup(popupHTML);
                     this.markers[item.id] = marker;
                 });
+            }
+
+            escapeHtml(value) {
+                return String(value).replace(/[&<>\'\"]/g, character => ({
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    "'": '&#39;',
+                    '"': '&quot;'
+                }[character]));
+            }
+
+            getMapPosition(item) {
+                const buildingKey = `${item.lat},${item.lng}`;
+                const sameBuilding = this.restrooms.filter(restroom => `${restroom.lat},${restroom.lng}` === buildingKey);
+                const index = sameBuilding.findIndex(restroom => restroom.id === item.id);
+
+                if (sameBuilding.length < 2 || index < 0) {
+                    return [item.lat, item.lng];
+                }
+
+                const positionsPerRing = 8;
+                const ring = Math.floor(index / positionsPerRing);
+                const position = index % positionsPerRing;
+                const radius = 0.0001 + ring * 0.00005;
+                const angle = (position * Math.PI * 2) / positionsPerRing;
+
+                return [
+                    item.lat + Math.cos(angle) * radius,
+                    item.lng + Math.sin(angle) * radius
+                ];
             }
 
             updateStats() {
@@ -887,7 +1036,7 @@
             focusOnRestroom(id) {
                 const item = this.restrooms.find(r => r.id === id);
                 if (item && this.map && this.markers[id]) {
-                    this.map.flyTo([item.lat, item.lng], 18, { duration: 1 });
+                    this.map.flyTo(this.markers[id].getLatLng(), 18, { duration: 1 });
                     this.markers[id].openPopup();
                 }
             }
