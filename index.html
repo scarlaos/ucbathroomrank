@@ -294,7 +294,6 @@
             </div>
 
             <div class="p-5 space-y-4 max-h-[80vh] overflow-y-auto text-xs text-slate-300">
-                <p class="text-slate-400">Fill this out, then copy the generated object into the array in <strong class="text-white">data.json</strong>.</p>
                 <form id="ratingForm" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <label class="sm:col-span-2">Building<select required name="building" class="form-input"><option value="">Choose a building</option><option>Tangeman University Center (TUC)</option><option>Lindner College of Business</option><option>Carl H. Lindner Hall</option><option>Engineering Research Center (ERC)</option><option>Langsam Library</option><option>Old Chemistry Building</option><option>Steger Student Life Center</option><option>Swift Hall</option><option>Zimmer Hall</option><option>Teachers-Dyer Complex</option><option>Teachers College</option><option>Braunstein Hall</option></select></label>
                     <label>Floor<select required name="floor" class="form-input"><option value="">Choose a floor</option><option>1st Floor</option><option>2nd Floor</option><option>3rd Floor</option><option>4th Floor</option><option>5th Floor</option></select></label>
@@ -305,7 +304,7 @@
                     <label>Cleanliness (1-5)<select required name="cleanliness" class="form-input"><option value="5">5.0 - Exceptional</option><option value="4.5">4.5 - Excellent</option><option value="4">4.0 - Good</option><option value="3.5">3.5 - Fair</option><option value="3">3.0 - Acceptable</option><option value="2">2.0 - Needs attention</option><option value="1">1.0 - Poor</option></select></label>
                     <label>Privacy (1-5)<select required name="privacy" class="form-input"><option value="5">5.0 - Very private</option><option value="4.5">4.5 - Highly private</option><option value="4">4.0 - Private</option><option value="3">3.0 - Standard</option><option value="2">2.0 - Exposed</option><option value="1">1.0 - Very exposed</option></select></label>
                     <label>Noise (1-5)<select required name="noise" class="form-input"><option value="1">1.0 - Pin-drop quiet</option><option value="2">2.0 - Quiet</option><option value="3">3.0 - Moderate</option><option value="4">4.0 - Busy</option><option value="5">5.0 - Very busy</option></select></label>
-                    <fieldset class="sm:col-span-2"><legend>Amenities <span class="text-slate-500">(choose all that apply)</span></legend><div class="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-1"><label class="amenity-option"><input type="checkbox" name="amenities" value="Feminine Products"> Feminine Products</label><label class="amenity-option"><input type="checkbox" name="amenities" value="Full Doors"> Full Doors</label><label class="amenity-option"><input type="checkbox" name="amenities" value="Bag Hook"> Bag Hook</label><label class="amenity-option"><input type="checkbox" name="amenities" value="Power Outlets"> Power Outlets</label><label class="amenity-option"><input type="checkbox" name="amenities" value="Coat Rack"> Coat Rack</label><label class="amenity-option"><input type="checkbox" name="amenities" value="Touchless Faucets"> Touchless Faucets</label><label class="amenity-option"><input type="checkbox" name="amenities" value="Automatic Soap"> Automatic Soap</label><label class="amenity-option"><input type="checkbox" name="amenities" value="Automatic Flush"> Automatic Flush</label><label class="amenity-option"><input type="checkbox" name="amenities" value="Hand Dryer"> Hand Dryer</label><label class="amenity-option"><input type="checkbox" name="amenities" value="Paper Towels"> Paper Towels</label><label class="amenity-option"><input type="checkbox" name="amenities" value="Full-Length Mirror"> Full-Length Mirror</label><label class="amenity-option"><input type="checkbox" name="amenities" value="ADA Accessible"> ADA Accessible</label></div></fieldset>
+                    <fieldset class="sm:col-span-2"><legend>Amenities</legend><div class="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-1"><label class="amenity-option"><input type="checkbox" name="amenities" value="Feminine Products"> Feminine Products</label><label class="amenity-option"><input type="checkbox" name="amenities" value="Full Doors"> Full Doors</label><label class="amenity-option"><input type="checkbox" name="amenities" value="Bag Hook"> Bag Hook</label><label class="amenity-option"><input type="checkbox" name="amenities" value="Power Outlets"> Power Outlets</label><label class="amenity-option"><input type="checkbox" name="amenities" value="Coat Rack"> Coat Rack</label><label class="amenity-option"><input type="checkbox" name="amenities" value="Touchless Faucets"> Touchless Faucets</label><label class="amenity-option"><input type="checkbox" name="amenities" value="Automatic Soap"> Automatic Soap</label><label class="amenity-option"><input type="checkbox" name="amenities" value="Automatic Flush"> Automatic Flush</label><label class="amenity-option"><input type="checkbox" name="amenities" value="Hand Dryer"> Hand Dryer</label><label class="amenity-option"><input type="checkbox" name="amenities" value="Paper Towels"> Paper Towels</label><label class="amenity-option"><input type="checkbox" name="amenities" value="Full-Length Mirror"> Full-Length Mirror</label><label class="amenity-option"><input type="checkbox" name="amenities" value="ADA Accessible"> ADA Accessible</label></div></fieldset>
                     <label class="sm:col-span-2">Review<textarea required name="review" rows="3" placeholder="What stood out about this restroom?" class="form-input"></textarea></label>
                     <button type="submit" class="sm:col-span-2 py-2 rounded-xl bg-uc-red hover:bg-uc-darkred text-white font-semibold transition"><i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Generate JSON</button>
                 </form>
@@ -379,16 +378,16 @@
             { name: "Swift Hall", lat: 39.1330, lng: -84.5156 }
         ];
 
-        const FORM_BUILDING_COORDINATES = {
-            "Tangeman University Center (TUC)": { lat: 39.1317, lng: -84.5186 },
+        const BUILDING_COORDINATES = {
+            "Tangeman University Center (TUC)": { lat: 39.1319, lng: -84.5160 },
             "Lindner College of Business": { lat: 39.1340, lng: -84.5126 },
-            "Carl H. Lindner Hall": { lat: 39.1332, lng: -84.5152 },
-            "Engineering Research Center (ERC)": { lat: 39.1328, lng: -84.5175 },
-            "Langsam Library": { lat: 39.1345, lng: -84.5168 },
-            "Old Chemistry Building": { lat: 39.1338, lng: -84.5180 },
-            "Steger Student Life Center": { lat: 39.1322, lng: -84.5182 },
-            "Swift Hall": { lat: 39.1335, lng: -84.5172 },
-            "Zimmer Hall": { lat: 39.1331, lng: -84.5188 },
+            "Carl H. Lindner Hall": { lat: 39.1340, lng: -84.5126 },
+            "Engineering Research Center (ERC)": { lat: 39.1332, lng: -84.5140 },
+            "Langsam Library": { lat: 39.1336, lng: -84.5150 },
+            "Old Chemistry Building": { lat: 39.1344, lng: -84.5156 },
+            "Steger Student Life Center": { lat: 39.1323, lng: -84.5165 },
+            "Swift Hall": { lat: 39.1330, lng: -84.5156 },
+            "Zimmer Hall": { lat: 39.1337, lng: -84.5164 },
             "Teachers-Dyer Complex": { lat: 39.1310, lng: -84.5170 },
             "Teachers College": { lat: 39.1310, lng: -84.5170 },
             "Braunstein Hall": { lat: 39.1348, lng: -84.5150 }
@@ -508,8 +507,11 @@
                 const hasAmenity = name => amenities.some(value => value.toLowerCase() === name.toLowerCase());
                 const privacyScore = Number(item.privacy);
                 const noiseScore = Number(item.noise);
+                const buildingCoordinates = BUILDING_COORDINATES[item.building];
 
                 return Object.assign({}, item, {
+                    lat: buildingCoordinates ? buildingCoordinates.lat : Number(item.lat),
+                    lng: buildingCoordinates ? buildingCoordinates.lng : Number(item.lng),
                     floor: item.roomNumber ? `${item.floor} (Room ${item.roomNumber})` : item.floor,
                     gender: (item.gender || '').replace('Gender-Neutral', 'Gender Neutral'),
                     cleanliness: Number(item.cleanliness) || 0,
@@ -655,7 +657,7 @@
                 const ratedBy = formData.get('ratedBy').trim();
                 const idBase = `${building}-${dateRated}-${ratedBy}`.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
                 const amenities = formData.getAll('amenities');
-                const coordinates = FORM_BUILDING_COORDINATES[building];
+                const coordinates = BUILDING_COORDINATES[building];
                 const review = {
                     id: idBase,
                     building,

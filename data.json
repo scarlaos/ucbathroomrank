@@ -134,5 +134,28 @@
     "amenities": ["Full Doors", "Bag Hook", "Coat Rack"],
     "review": "Subtle entrance off the main corridor. Highly reliable for privacy between classes in Arts & Sciences.",
     "lastUpdated": "2026-09-11"
-  }
+  },
+  {
+  "id": "lindner-college-of-business-2026-09-11-olivia",
+  "building": "Lindner College of Business",
+  "floor": "1st Floor",
+  "lat": 39.134,
+  "lng": -84.5126,
+  "gender": "Women's",
+  "ada": true,
+  "cleanliness": 4,
+  "privacy": 4,
+  "noise": 3,
+  "vibe": "Quick In-and-Out",
+  "amenities": [
+    "Feminine Products",
+    "Power Outlets",
+    "Automatic Flush",
+    "ADA Accessible"
+  ],
+  "review": "Nearby the Starbucks. It wasn't my favorite restroom, but it did the job.",
+  "dateRated": "2026-09-11",
+  "ratedBy": "Olivia",
+  "lastUpdated": "2026-09-11"
+}
 ]
