@@ -101,6 +101,23 @@
         .user-loc-pulse {
             animation: pulse-ring 2s infinite ease-in-out;
         }
+
+        .form-input {
+            display: block;
+            width: 100%;
+            margin-top: 0.25rem;
+            padding: 0.5rem 0.625rem;
+            background: #020617;
+            border: 1px solid #1e293b;
+            border-radius: 0.5rem;
+            color: #f8fafc;
+            outline: none;
+        }
+
+        .form-input:focus {
+            border-color: #E00122;
+            box-shadow: 0 0 0 1px #E00122;
+        }
     </style>
 </head>
 <body class="h-full flex flex-col bg-slate-950 text-slate-100 overflow-hidden">
@@ -242,12 +259,12 @@
         </div>
     </div>
 
-    <!-- Modal: Ranking Guidelines -->
+    <!-- Modal: Generate a data.json review -->
     <div id="ratingModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm hidden overflow-y-auto">
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl my-8">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl my-8">
             <div class="bg-gradient-to-r from-slate-900 via-slate-850 to-slate-900 p-4 border-b border-slate-800 flex justify-between items-center">
                 <h3 class="text-base font-bold text-white flex items-center gap-2">
-                    <i class="fa-solid fa-list-check text-uc-red"></i> Restroom Ranking Guidelines
+                    <i class="fa-solid fa-star text-uc-red"></i> Rate a Restroom
                 </h3>
                 <button id="closeModalBtn" class="text-slate-400 hover:text-white text-lg w-8 h-8 rounded-full flex items-center justify-center hover:bg-slate-800 transition">
                     <i class="fa-solid fa-xmark"></i>
@@ -255,14 +272,28 @@
             </div>
 
             <div class="p-5 space-y-4 max-h-[80vh] overflow-y-auto text-xs text-slate-300">
-                <p class="text-slate-400">Add each new review as an object in <strong class="text-white">data.json</strong>, then commit and push the file to GitHub Pages.</p>
-                <div class="space-y-3">
-                    <div class="bg-slate-950 border border-slate-800 rounded-xl p-3"><strong class="text-white">Cleanliness (1-5)</strong><p class="mt-1 text-slate-400">1 = needs attention, 3 = acceptable, 5 = exceptionally clean.</p></div>
-                    <div class="bg-slate-950 border border-slate-800 rounded-xl p-3"><strong class="text-white">Privacy (1-5)</strong><p class="mt-1 text-slate-400">1 = high traffic or exposed, 3 = standard stalls, 5 = private or single-occupancy.</p></div>
-                    <div class="bg-slate-950 border border-slate-800 rounded-xl p-3"><strong class="text-white">Noise (1-5)</strong><p class="mt-1 text-slate-400">1 = quiet, 3 = moderate foot traffic, 5 = busy or echoey.</p></div>
-                    <div class="bg-slate-950 border border-slate-800 rounded-xl p-3"><strong class="text-white">Amenities</strong><p class="mt-1 text-slate-400">Use an array such as <code class="text-uc-red">[&quot;Feminine Products&quot;, &quot;Bag Hook&quot;, &quot;Power Outlets&quot;]</code>. Include ADA access with <code class="text-uc-red">&quot;ada&quot;: true</code>.</p></div>
+                <p class="text-slate-400">Fill this out, then copy the generated object into the array in <strong class="text-white">data.json</strong>.</p>
+                <form id="ratingForm" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <label class="sm:col-span-2">Building<input required name="building" placeholder="e.g. Tangeman University Center (TUC)" class="form-input"></label>
+                    <label>Room number<input required name="roomNumber" placeholder="310" class="form-input"></label>
+                    <label>Floor<input required name="floor" placeholder="3rd Floor" class="form-input"></label>
+                    <label>Latitude<input required name="lat" type="number" step="any" placeholder="39.1317" class="form-input"></label>
+                    <label>Longitude<input required name="lng" type="number" step="any" placeholder="-84.5186" class="form-input"></label>
+                    <label>Gender<select name="gender" class="form-input"><option>Gender-Neutral</option><option>Women's</option><option>Men's</option><option>Single Stall</option></select></label>
+                    <label>Vibe<input required name="vibe" placeholder="Quiet and clean" class="form-input"></label>
+                    <label>Cleanliness (1-5)<input required name="cleanliness" type="number" min="1" max="5" step="0.1" value="5" class="form-input"></label>
+                    <label>Privacy (1-5)<input required name="privacy" type="number" min="1" max="5" step="0.1" value="5" class="form-input"></label>
+                    <label>Noise (1-5)<input required name="noise" type="number" min="1" max="5" step="0.1" value="1" class="form-input"></label>
+                    <label class="sm:col-span-2">Amenities <span class="text-slate-500">(comma separated)</span><input name="amenities" placeholder="Feminine Products, Full Doors, Bag Hook" class="form-input"></label>
+                    <label class="sm:col-span-2">Review<textarea required name="review" rows="3" placeholder="What stood out about this restroom?" class="form-input"></textarea></label>
+                    <label class="sm:col-span-2 inline-flex items-center gap-2"><input name="ada" type="checkbox" class="accent-uc-red"> ADA accessible</label>
+                    <button type="submit" class="sm:col-span-2 py-2 rounded-xl bg-uc-red hover:bg-uc-darkred text-white font-semibold transition"><i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Generate JSON</button>
+                </form>
+                <div id="jsonOutputPanel" class="hidden space-y-2">
+                    <div class="flex items-center justify-between"><strong class="text-white">Generated JSON</strong><button type="button" id="copyJsonBtn" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700"><i class="fa-regular fa-copy mr-1"></i> Copy</button></div>
+                    <textarea id="jsonOutput" readonly rows="12" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-[11px] leading-relaxed text-emerald-300 font-mono focus:outline-none"></textarea>
+                    <p id="copyStatus" class="text-[11px] text-emerald-400"></p>
                 </div>
-                <div class="bg-uc-red/10 border border-uc-red/30 rounded-xl p-3 text-slate-300"><strong class="text-white">Required fields:</strong> id, building, roomNumber, floor, lat, lng, gender, ada, cleanliness, privacy, noise, vibe, amenities, review, lastUpdated.</div>
                 <button type="button" id="cancelFormBtn" class="w-full py-2 rounded-xl border border-slate-700 text-xs font-semibold text-slate-300 hover:bg-slate-800 transition">Close</button>
             </div>
         </div>
@@ -314,6 +345,9 @@
     </div>
 
     <script>
+        // CARTO browser tokens are public by design; restrict this key by domain in CARTO.
+        const CARTO_API_KEY = '';
+
         // Campus Building Dataset with Exact Coordinates for UC Main Campus
         const UC_BUILDINGS = [
             { name: "Tangeman University Center (TUC)", lat: 39.1319, lng: -84.5160 },
@@ -494,7 +528,8 @@
                 }).setView([centerLat, centerLng], 17);
 
                 // Add dark map tiles for Bearcat dark mode aesthetic
-                L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                const tileUrl = `https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png${CARTO_API_KEY ? `?api_key=${encodeURIComponent(CARTO_API_KEY)}` : ''}`;
+                L.tileLayer(tileUrl, {
                     attribution: '&copy; OpenStreetMap &copy; CARTO',
                     subdomains: 'abcd',
                     maxZoom: 19
@@ -538,6 +573,9 @@
                 document.getElementById('closeModalBtn').addEventListener('click', () => modal.classList.add('hidden'));
                 document.getElementById('cancelFormBtn').addEventListener('click', () => modal.classList.add('hidden'));
 
+                document.getElementById('ratingForm').addEventListener('submit', (event) => this.generateReviewJson(event));
+                document.getElementById('copyJsonBtn').addEventListener('click', () => this.copyReviewJson());
+
                 // Dev Specs Modal
                 const devModal = document.getElementById('devModal');
                 document.getElementById('openDevModal').addEventListener('click', () => devModal.classList.remove('hidden'));
@@ -576,6 +614,49 @@
                         alert('Unable to retrieve location. Defaulting to UC Main Campus view.');
                     }
                 );
+            }
+
+            generateReviewJson(event) {
+                event.preventDefault();
+                const formData = new FormData(event.currentTarget);
+                const building = formData.get('building').trim();
+                const roomNumber = formData.get('roomNumber').trim();
+                const idBase = `${building}-${roomNumber}`.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+                const amenities = formData.get('amenities')
+                    .split(',')
+                    .map(value => value.trim())
+                    .filter(Boolean);
+                const review = {
+                    id: idBase,
+                    building,
+                    roomNumber,
+                    floor: formData.get('floor').trim(),
+                    lat: Number(formData.get('lat')),
+                    lng: Number(formData.get('lng')),
+                    gender: formData.get('gender'),
+                    ada: formData.get('ada') === 'on',
+                    cleanliness: Number(formData.get('cleanliness')),
+                    privacy: Number(formData.get('privacy')),
+                    noise: Number(formData.get('noise')),
+                    vibe: formData.get('vibe').trim(),
+                    amenities,
+                    review: formData.get('review').trim(),
+                    lastUpdated: new Date().toISOString().slice(0, 10)
+                };
+
+                document.getElementById('jsonOutput').value = JSON.stringify(review, null, 2);
+                document.getElementById('jsonOutputPanel').classList.remove('hidden');
+                document.getElementById('copyStatus').textContent = '';
+            }
+
+            copyReviewJson() {
+                const output = document.getElementById('jsonOutput');
+                navigator.clipboard.writeText(output.value).then(() => {
+                    document.getElementById('copyStatus').textContent = 'Copied. Paste this object inside the data.json array.';
+                }).catch(() => {
+                    output.select();
+                    document.getElementById('copyStatus').textContent = 'Select the JSON above and copy it manually.';
+                });
             }
 
             getFilteredData() {
