@@ -396,7 +396,7 @@
         <div class="modal-panel bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl my-8">
             <div class="bg-gradient-to-r from-slate-900 via-slate-850 to-slate-900 p-4 border-b border-slate-800 flex justify-between items-center">
                 <h3 id="ratingModalTitle" class="text-base font-bold text-white flex items-center gap-2">
-                    <i class="fa-solid fa-star text-uc-red"></i> Rate a Restroom
+                    <i class="fa-solid fa-star text-uc-red"></i> <span id="ratingModalTitleText">Rate a Restroom</span>
                 </h3>
                 <button id="closeModalBtn" aria-label="Close restroom rating form" class="text-slate-400 hover:text-white text-lg w-8 h-8 rounded-full flex items-center justify-center hover:bg-slate-800 transition">
                     <i class="fa-solid fa-xmark"></i>
@@ -404,6 +404,10 @@
             </div>
 
             <div class="p-5 space-y-4 max-h-[80vh] overflow-y-auto text-xs text-slate-300">
+                <div class="rounded-xl border border-amber-800/60 bg-amber-950/30 p-3 text-amber-100" role="note">
+                    <strong class="block text-amber-300">Important: generate the JSON first.</strong>
+                    <span>After you generate it, copy the JSON, open the Google Form, paste it into “Paste Here,” and submit your rating.</span>
+                </div>
                 <form id="ratingForm" class="rating-grid grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <label class="sm:col-span-2">Building<select required name="building" class="form-input"><option value="">Choose a building</option><option>Tangeman University Center (TUC)</option><option>Lindner College of Business</option><option>Carl H. Lindner Hall</option><option>Engineering Research Center (ERC)</option><option>Langsam Library</option><option>Old Chemistry Building</option><option>Steger Student Life Center</option><option>Swift Hall</option><option>Zimmer Hall</option><option>Teachers-Dyer Complex</option><option>Teachers College</option><option>Braunstein Hall</option></select></label>
                     <label>Floor<select required name="floor" class="form-input"><option value="">Choose a floor</option><option>1st Floor</option><option>2nd Floor</option><option>3rd Floor</option><option>4th Floor</option><option>5th Floor</option></select></label>
@@ -594,6 +598,7 @@
                 this.markers = {};
                 this.activeFilter = 'all';
                 this.pageLoadedAt = new Date();
+                this.editingId = null;
                 
                 this.initMap();
                 this.initDOM();
@@ -608,7 +613,7 @@
                     })
                     .then(data => {
                     const savedReviews = this.getSavedReviews();
-                    const records = [...data, ...savedReviews].filter((item, index, all) =>
+                    const records = [...data, ...savedReviews.map(item => Object.assign({}, item, { localOnly: true }))].filter((item, index, all) =>
                         all.findIndex(candidate => candidate.id === item.id) === index
                     );
                     this.restrooms = records.map(item => this.normalizeRecord(item));
@@ -774,10 +779,7 @@
                 const modal = document.getElementById('ratingModal');
                 const ratingButton = document.getElementById('addBathroomBtn');
                 const closeRatingModal = () => modal.classList.add('hidden');
-                ratingButton.addEventListener('click', () => {
-                    modal.classList.remove('hidden');
-                    document.querySelector('[name="building"]').focus();
-                });
+                ratingButton.addEventListener('click', () => this.openRatingForm());
                 document.getElementById('closeModalBtn').addEventListener('click', closeRatingModal);
                 document.getElementById('cancelFormBtn').addEventListener('click', closeRatingModal);
 
@@ -836,13 +838,52 @@
                 );
             }
 
+            openRatingForm(item = null) {
+                const form = document.getElementById('ratingForm');
+                form.reset();
+                this.editingId = item ? item.id : null;
+                document.getElementById('ratingModalTitleText').textContent = item ? 'Edit Your Rating' : 'Rate a Restroom';
+                document.querySelector('[name="dateRated"]').value = item?.dateRated || item?.lastUpdated || new Date().toISOString().slice(0, 10);
+                document.querySelector('[name="ratedBy"]').value = item?.ratedBy || 'Olivia';
+
+                if (item) {
+                    ['building', 'floor', 'gender', 'vibe', 'cleanliness', 'review'].forEach(name => {
+                        const field = form.elements[name];
+                        if (field) field.value = item[name] ?? '';
+                    });
+                    form.elements.privacy.value = item.privacyScore ?? '';
+                    form.elements.noise.value = item.noiseScore ?? '';
+                    const amenities = item.amenityLabels || [];
+                    form.querySelectorAll('[name="amenities"]').forEach(input => {
+                        input.checked = amenities.includes(input.value);
+                    });
+                }
+
+                document.getElementById('jsonOutputPanel').classList.add('hidden');
+                document.getElementById('ratingModal').classList.remove('hidden');
+                document.querySelector('[name="building"]').focus();
+            }
+
+            deleteLocalReview(id) {
+                const item = this.restrooms.find(review => review.id === id);
+                if (!item || !item.localOnly || !window.confirm('Delete this local rating?')) return;
+
+                const savedReviews = this.getSavedReviews().filter(review => review.id !== id);
+                if (savedReviews.length) localStorage.setItem('uc-restroom-reviews', JSON.stringify(savedReviews));
+                else localStorage.removeItem('uc-restroom-reviews');
+                this.restrooms = this.restrooms.filter(review => review.id !== id);
+                this.populateBuildingFilter();
+                this.updateWebsiteUpdatedDate();
+                this.render();
+            }
+
             generateReviewJson(event) {
                 event.preventDefault();
                 const formData = new FormData(event.currentTarget);
                 const building = formData.get('building').trim();
                 const dateRated = formData.get('dateRated');
                 const ratedBy = formData.get('ratedBy').trim();
-                const idBase = `${building}-${dateRated}-${ratedBy}-${Date.now()}`.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+                const idBase = this.editingId || `${building}-${dateRated}-${ratedBy}-${Date.now()}`.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
                 const amenities = formData.getAll('amenities');
                 const coordinates = BUILDING_COORDINATES[building];
                 const review = {
@@ -861,7 +902,8 @@
                     review: formData.get('review').trim(),
                     dateRated,
                     ratedBy,
-                    lastUpdated: dateRated
+                    lastUpdated: dateRated,
+                    localOnly: true
                 };
 
                 const savedReviews = this.getSavedReviews().filter(item => item.id !== review.id);
@@ -1003,6 +1045,7 @@
                             <button class="focus-map-btn text-xs text-slate-400 hover:text-white font-medium flex items-center gap-1" data-id="${item.id}">
                                 <i class="fa-solid fa-map-pin text-uc-red"></i> Focus on Map
                             </button>
+                            ${item.localOnly ? `<div class="flex items-center gap-2"><button class="edit-review-btn text-amber-300 hover:text-amber-200 font-medium" data-id="${item.id}"><i class="fa-solid fa-pen mr-1"></i>Edit</button><button class="delete-review-btn text-red-300 hover:text-red-200 font-medium" data-id="${item.id}"><i class="fa-solid fa-trash mr-1"></i>Delete</button></div>` : ''}
                         </div>
                     `;
 
@@ -1015,6 +1058,15 @@
                         const id = e.currentTarget.dataset.id;
                         this.focusOnRestroom(id);
                     });
+                });
+                document.querySelectorAll('.edit-review-btn').forEach(btn => {
+                    btn.addEventListener('click', (event) => {
+                        const item = this.restrooms.find(review => review.id === event.currentTarget.dataset.id);
+                        if (item) this.openRatingForm(item);
+                    });
+                });
+                document.querySelectorAll('.delete-review-btn').forEach(btn => {
+                    btn.addEventListener('click', (event) => this.deleteLocalReview(event.currentTarget.dataset.id));
                 });
             }
 
