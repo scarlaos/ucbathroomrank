@@ -87,6 +87,11 @@
             border-color: #E00122;
         }
 
+        .custom-map-pin {
+            background: transparent !important;
+            border: 0 !important;
+        }
+
         .glass-panel {
             background: rgba(15, 23, 42, 0.85);
             backdrop-filter: blur(12px);
@@ -291,10 +296,11 @@
             <div class="p-5 space-y-4 max-h-[80vh] overflow-y-auto text-xs text-slate-300">
                 <p class="text-slate-400">Fill this out, then copy the generated object into the array in <strong class="text-white">data.json</strong>.</p>
                 <form id="ratingForm" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <label class="sm:col-span-2">Building<select required name="building" class="form-input"><option value="">Choose a building</option><option>Tangeman University Center (TUC)</option><option>Carl H. Lindner Hall</option><option>Engineering Research Center (ERC)</option><option>Langsam Library</option><option>Old Chemistry Building</option><option>Steger Student Life Center</option><option>Swift Hall</option><option>Zimmer Hall</option></select></label>
-                    <label>Room number<select required name="roomNumber" class="form-input"><option value="">Choose a room</option><option>101</option><option>112</option><option>208</option><option>2120</option><option>230</option><option>304</option><option>310</option><option>420</option><option>515</option></select></label>
+                    <label class="sm:col-span-2">Building<select required name="building" class="form-input"><option value="">Choose a building</option><option>Tangeman University Center (TUC)</option><option>Lindner College of Business</option><option>Carl H. Lindner Hall</option><option>Engineering Research Center (ERC)</option><option>Langsam Library</option><option>Old Chemistry Building</option><option>Steger Student Life Center</option><option>Swift Hall</option><option>Zimmer Hall</option><option>Teachers-Dyer Complex</option><option>Teachers College</option><option>Braunstein Hall</option></select></label>
                     <label>Floor<select required name="floor" class="form-input"><option value="">Choose a floor</option><option>1st Floor</option><option>2nd Floor</option><option>3rd Floor</option><option>4th Floor</option><option>5th Floor</option></select></label>
                     <label>Gender<select required name="gender" class="form-input"><option>Gender-Neutral</option><option>Women's</option><option>Men's</option><option>Single Stall</option></select></label>
+                    <label>Date rated<input required name="dateRated" type="date" class="form-input"></label>
+                    <label>Rated by<input required name="ratedBy" value="Olivia" class="form-input"></label>
                     <label>Vibe<select required name="vibe" class="form-input"><option>Bright and Modern</option><option>Quiet Study Break</option><option>Hidden Campus Gem</option><option>Busy but Reliable</option><option>Clean and Practical</option><option>Classic Academic</option><option>Peaceful Retreat</option><option>Quick In-and-Out</option><option>Spacious and Open</option><option>Recently Renovated</option></select></label>
                     <label>Cleanliness (1-5)<select required name="cleanliness" class="form-input"><option value="5">5.0 - Exceptional</option><option value="4.5">4.5 - Excellent</option><option value="4">4.0 - Good</option><option value="3.5">3.5 - Fair</option><option value="3">3.0 - Acceptable</option><option value="2">2.0 - Needs attention</option><option value="1">1.0 - Poor</option></select></label>
                     <label>Privacy (1-5)<select required name="privacy" class="form-input"><option value="5">5.0 - Very private</option><option value="4.5">4.5 - Highly private</option><option value="4">4.0 - Private</option><option value="3">3.0 - Standard</option><option value="2">2.0 - Exposed</option><option value="1">1.0 - Very exposed</option></select></label>
@@ -375,13 +381,17 @@
 
         const FORM_BUILDING_COORDINATES = {
             "Tangeman University Center (TUC)": { lat: 39.1317, lng: -84.5186 },
+            "Lindner College of Business": { lat: 39.1340, lng: -84.5126 },
             "Carl H. Lindner Hall": { lat: 39.1332, lng: -84.5152 },
             "Engineering Research Center (ERC)": { lat: 39.1328, lng: -84.5175 },
             "Langsam Library": { lat: 39.1345, lng: -84.5168 },
             "Old Chemistry Building": { lat: 39.1338, lng: -84.5180 },
             "Steger Student Life Center": { lat: 39.1322, lng: -84.5182 },
             "Swift Hall": { lat: 39.1335, lng: -84.5172 },
-            "Zimmer Hall": { lat: 39.1331, lng: -84.5188 }
+            "Zimmer Hall": { lat: 39.1331, lng: -84.5188 },
+            "Teachers-Dyer Complex": { lat: 39.1310, lng: -84.5170 },
+            "Teachers College": { lat: 39.1310, lng: -84.5170 },
+            "Braunstein Hall": { lat: 39.1348, lng: -84.5150 }
         };
 
         // Default Authentic Pre-Populated Data for UC Campus
@@ -595,6 +605,7 @@
 
                 document.getElementById('ratingForm').addEventListener('submit', (event) => this.generateReviewJson(event));
                 document.getElementById('copyJsonBtn').addEventListener('click', () => this.copyReviewJson());
+                document.querySelector('[name="dateRated"]').value = new Date().toISOString().slice(0, 10);
 
                 // Dev Specs Modal
                 const devModal = document.getElementById('devModal');
@@ -640,14 +651,14 @@
                 event.preventDefault();
                 const formData = new FormData(event.currentTarget);
                 const building = formData.get('building').trim();
-                const roomNumber = formData.get('roomNumber').trim();
-                const idBase = `${building}-${roomNumber}`.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+                const dateRated = formData.get('dateRated');
+                const ratedBy = formData.get('ratedBy').trim();
+                const idBase = `${building}-${dateRated}-${ratedBy}`.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
                 const amenities = formData.getAll('amenities');
                 const coordinates = FORM_BUILDING_COORDINATES[building];
                 const review = {
                     id: idBase,
                     building,
-                    roomNumber,
                     floor: formData.get('floor').trim(),
                     lat: coordinates.lat,
                     lng: coordinates.lng,
@@ -659,7 +670,9 @@
                     vibe: formData.get('vibe').trim(),
                     amenities,
                     review: formData.get('review').trim(),
-                    lastUpdated: new Date().toISOString().slice(0, 10)
+                    dateRated,
+                    ratedBy,
+                    lastUpdated: dateRated
                 };
 
                 document.getElementById('jsonOutput').value = JSON.stringify(review, null, 2);
@@ -819,7 +832,8 @@
                             </div>
                         `,
                         iconSize: [32, 32],
-                        iconAnchor: [16, 16]
+                        iconAnchor: [16, 16],
+                        popupAnchor: [0, -18]
                     });
 
                     const marker = L.marker([item.lat, item.lng], { icon: customIcon }).addTo(this.map);
