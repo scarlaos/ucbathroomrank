@@ -236,6 +236,60 @@
             border-color: #cbd5e1;
         }
 
+        body.light-mode .glass-panel {
+            background: rgba(255, 255, 255, 0.92);
+            border-color: #cbd5e1;
+        }
+
+        body.light-mode .form-input,
+        body.light-mode #searchInput,
+        body.light-mode #filterBuilding,
+        body.light-mode #filterCleanliness {
+            background: #f8fafc !important;
+            border-color: #cbd5e1 !important;
+            color: #172033 !important;
+        }
+
+        body.light-mode input#searchInput {
+            background: #f8fafc !important;
+            color: #172033 !important;
+            color-scheme: light;
+            appearance: none;
+            -webkit-appearance: none;
+        }
+
+        body.light-mode .amenity-option {
+            background: #f8fafc;
+            border-color: #cbd5e1;
+            color: #334155;
+        }
+
+        body.light-mode #restroomList > div,
+        body.light-mode #detailsPanel article {
+            background: #ffffff;
+            border-color: #cbd5e1;
+        }
+
+        body.light-mode #detailsPanel .bg-slate-900,
+        body.light-mode #detailsPanel .bg-slate-950 {
+            background: #f1f5f9;
+        }
+
+        body.light-mode #ratingsTab,
+        body.light-mode #detailsTab {
+            color: #334155;
+        }
+
+        body.light-mode .leaflet-popup-content-wrapper {
+            background: #ffffff !important;
+            color: #172033 !important;
+            border-color: #cbd5e1;
+        }
+
+        body.light-mode .leaflet-popup-tip {
+            background: #ffffff !important;
+        }
+
         @media (max-width: 640px) {
             body {
                 overflow: auto;
@@ -443,7 +497,7 @@
 
             <div class="px-4 pt-3 flex gap-1 border-b border-slate-800" role="tablist" aria-label="Restroom information views">
                 <button id="ratingsTab" role="tab" aria-selected="true" aria-controls="restroomList" class="px-3 py-2 text-xs font-semibold border-b-2 border-uc-red text-white">Ratings</button>
-                <button id="detailsTab" role="tab" aria-selected="false" aria-controls="detailsPanel" class="px-3 py-2 text-xs font-semibold border-b-2 border-transparent text-slate-400">Details</button>
+                <button id="detailsTab" role="tab" aria-selected="false" aria-controls="detailsPanel" class="px-3 py-2 text-xs font-semibold border-b-2 border-transparent text-slate-400">Details <span class="font-normal">(select a rating)</span></button>
             </div>
 
             <div id="restroomList" class="flex-1 overflow-y-auto p-4 space-y-3">
@@ -452,7 +506,7 @@
 
             <div id="detailsPanel" role="tabpanel" aria-labelledby="detailsTab" class="hidden flex-1 overflow-y-auto p-4">
                 <div class="space-y-4">
-                    <div class="text-center text-slate-500 py-6">Select a restroom from the ratings list or map.</div>
+                    <div class="text-center border border-dashed border-slate-700 rounded-xl p-6 text-slate-400"><i class="fa-solid fa-circle-info text-uc-red text-lg mb-2"></i><p class="font-semibold text-slate-300">View a rating’s full details here</p><p class="mt-1">Go to the Ratings tab and select Details on any restroom card, or open a map pin and choose Open Details Tab.</p></div>
                     <div class="border-t border-slate-800 pt-4 text-[11px] text-slate-500">UC Restroom Index is a non-commercial student project. Information is community-submitted and may change. The site owner is not liable for injuries, losses, access issues, or other problems related to using this information.</div>
                 </div>
             </div>
@@ -862,7 +916,7 @@
                 document.querySelector('[name="dateRated"]').value = new Date().toISOString().slice(0, 10);
 
                 document.getElementById('themeToggle').addEventListener('click', () => this.toggleTheme());
-                if (localStorage.getItem('uc-theme') === 'light') this.toggleTheme();
+                if (localStorage.getItem('uc-theme') === 'light') this.toggleTheme(true);
                 document.getElementById('ratingsTab').addEventListener('click', () => this.selectTab('ratings'));
                 document.getElementById('detailsTab').addEventListener('click', () => this.selectTab('details'));
                 document.addEventListener('keydown', (event) => {
@@ -878,9 +932,18 @@
 
             }
 
-            toggleTheme() {
-                const isLight = document.body.classList.toggle('light-mode');
+            toggleTheme(forceLight = null) {
+                const isLight = forceLight === null
+                    ? !document.body.classList.contains('light-mode')
+                    : forceLight;
+                document.body.classList.toggle('light-mode', isLight);
                 const button = document.getElementById('themeToggle');
+                ['searchInput', 'filterBuilding', 'filterCleanliness'].forEach(id => {
+                    const control = document.getElementById(id);
+                    control.classList.toggle('bg-slate-950', !isLight);
+                    control.style.setProperty('background-color', isLight ? '#f8fafc' : '#020617', 'important');
+                    control.style.setProperty('color', isLight ? '#172033' : '#f8fafc', 'important');
+                });
                 button.setAttribute('aria-label', isLight ? 'Switch to dark mode' : 'Switch to light mode');
                 button.querySelector('span').textContent = isLight ? 'Dark Mode' : 'Light Mode';
                 button.querySelector('i').className = isLight ? 'fa-solid fa-moon' : 'fa-solid fa-sun';
