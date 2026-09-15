@@ -141,6 +141,35 @@
             color: #fff;
         }
 
+        :focus-visible {
+            outline: 3px solid #fbbf24;
+            outline-offset: 2px;
+        }
+
+        .skip-link {
+            position: absolute;
+            left: 0.75rem;
+            top: -4rem;
+            z-index: 100;
+            padding: 0.625rem 0.875rem;
+            background: #ffffff;
+            color: #111827;
+            border-radius: 0.5rem;
+            font-weight: 700;
+        }
+
+        .skip-link:focus {
+            top: 0.75rem;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                scroll-behavior: auto !important;
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
         @media (max-width: 640px) {
             body {
                 overflow: auto;
@@ -223,6 +252,7 @@
     </style>
 </head>
 <body class="h-full flex flex-col bg-slate-950 text-slate-100 overflow-hidden">
+    <a class="skip-link" href="#main-content">Skip to restroom directory</a>
 
     <!-- Header -->
     <header class="bg-slate-900 border-b border-slate-800 z-30 shrink-0 shadow-lg">
@@ -241,15 +271,15 @@
             </div>
 
             <div class="header-actions flex items-center space-x-2 sm:space-x-3">
-                <button id="locateMeBtn" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 flex items-center gap-2 transition">
+                <button id="locateMeBtn" aria-label="Locate me on the map" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 flex items-center gap-2 transition">
                     <i class="fa-solid fa-location-crosshairs text-uc-red"></i>
                     <span class="hidden sm:inline">Locate Me</span>
                 </button>
-                <button id="openDevModal" class="portfolio-button px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 flex items-center gap-2 transition">
+                <button id="openDevModal" aria-label="Open portfolio specifications" class="portfolio-button px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 flex items-center gap-2 transition">
                     <i class="fa-solid fa-code text-indigo-400"></i>
                     <span class="hidden sm:inline">Portfolio Specs</span>
                 </button>
-                <button id="addBathroomBtn" title="Open the JSON rating form" class="px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-uc-red hover:bg-uc-darkred text-white shadow-md shadow-uc-red/20 flex items-center gap-2 transition transform active:scale-95">
+                <button id="addBathroomBtn" title="Open the JSON rating form" aria-label="Rate a restroom and generate JSON" class="px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-uc-red hover:bg-uc-darkred text-white shadow-md shadow-uc-red/20 flex items-center gap-2 transition transform active:scale-95">
                     <i class="fa-solid fa-star"></i>
                     <span>Rate Restroom</span>
                 </button>
@@ -258,11 +288,11 @@
     </header>
 
     <!-- Main Content Grid -->
-    <main class="flex-1 flex flex-col lg:flex-row overflow-hidden relative">
+    <main id="main-content" class="flex-1 flex flex-col lg:flex-row overflow-hidden relative" tabindex="-1">
 
         <!-- Left Column: Map View -->
         <div class="map-panel w-full lg:w-3/5 h-64 lg:h-auto relative flex-shrink-0">
-            <div id="map" class="w-full h-full z-10 bg-slate-900"></div>
+            <div id="map" class="w-full h-full z-10 bg-slate-900" role="region" aria-label="Interactive map of UC restroom locations"></div>
 
             <!-- Floating Quick Stats Widget -->
             <div class="absolute top-4 left-4 z-20 glass-panel rounded-xl p-3 shadow-xl max-w-xs hidden sm:block">
@@ -289,7 +319,7 @@
 
             <!-- Map Controls Overlay -->
             <div class="map-control absolute bottom-4 left-4 z-20 flex gap-2">
-                <button id="resetMapCenter" class="glass-panel text-slate-200 hover:text-white px-3 py-1.5 rounded-lg text-xs font-medium border border-slate-700 flex items-center gap-1.5 shadow-md">
+                <button id="resetMapCenter" aria-label="Recenter map on UC Main Campus" class="glass-panel text-slate-200 hover:text-white px-3 py-1.5 rounded-lg text-xs font-medium border border-slate-700 flex items-center gap-1.5 shadow-md">
                     <i class="fa-solid fa-bullseye text-uc-red"></i> Recenter UC Main
                 </button>
             </div>
@@ -302,9 +332,9 @@
                 <div class="flex items-center gap-2">
                     <div class="relative flex-1">
                         <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-500 text-xs"></i>
-                        <input type="text" id="searchInput" placeholder="Search by building, floor, tag..." class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 py-2 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-uc-red focus:ring-1 focus:ring-uc-red transition">
+                        <input type="text" id="searchInput" aria-label="Search restrooms" placeholder="Search by building, floor, tag..." class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 py-2 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-uc-red focus:ring-1 focus:ring-uc-red transition">
                     </div>
-                    <button id="filterToggleBtn" class="px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-750 flex items-center gap-1.5 transition">
+                    <button id="filterToggleBtn" aria-expanded="false" aria-controls="filterDrawer" class="px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-750 flex items-center gap-1.5 transition">
                         <i class="fa-solid fa-sliders"></i> Filters
                     </button>
                 </div>
@@ -354,21 +384,21 @@
             </div>
             
             <!-- List Footer Info -->
-            <div class="p-3 border-t border-slate-800 bg-slate-950 text-center text-[11px] text-slate-500 flex justify-between items-center">
-                <span id="resultCount">Showing 0 restrooms</span>
-                <span class="text-slate-400">Loaded from data.json</span>
+            <div class="p-3 border-t border-slate-800 bg-slate-950 text-center text-[11px] text-slate-500 flex flex-wrap gap-2 justify-between items-center">
+                <span id="resultCount" aria-live="polite">Showing 0 restrooms</span>
+                <span class="text-slate-400">Website last updated <time id="websiteUpdatedDate">--</time></span>
             </div>
         </div>
     </main>
 
     <!-- Modal: Generate a data.json review -->
-    <div id="ratingModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm hidden overflow-y-auto">
+    <div id="ratingModal" role="dialog" aria-modal="true" aria-labelledby="ratingModalTitle" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm hidden overflow-y-auto">
         <div class="modal-panel bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl my-8">
             <div class="bg-gradient-to-r from-slate-900 via-slate-850 to-slate-900 p-4 border-b border-slate-800 flex justify-between items-center">
-                <h3 class="text-base font-bold text-white flex items-center gap-2">
+                <h3 id="ratingModalTitle" class="text-base font-bold text-white flex items-center gap-2">
                     <i class="fa-solid fa-star text-uc-red"></i> Rate a Restroom
                 </h3>
-                <button id="closeModalBtn" class="text-slate-400 hover:text-white text-lg w-8 h-8 rounded-full flex items-center justify-center hover:bg-slate-800 transition">
+                <button id="closeModalBtn" aria-label="Close restroom rating form" class="text-slate-400 hover:text-white text-lg w-8 h-8 rounded-full flex items-center justify-center hover:bg-slate-800 transition">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
@@ -400,14 +430,14 @@
     </div>
 
     <!-- Modal: Developer Portfolio Technical Specs -->
-    <div id="devModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm hidden">
+    <div id="devModal" role="dialog" aria-modal="true" aria-labelledby="devModalTitle" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm hidden">
         <div class="modal-panel bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-xl overflow-hidden shadow-2xl">
             <div class="p-4 border-b border-slate-800 flex justify-between items-center bg-slate-950">
                 <div class="flex items-center gap-2">
                     <i class="fa-solid fa-laptop-code text-indigo-400"></i>
-                    <h3 class="text-sm font-bold text-white">Developer Specs & Technical Overview</h3>
+                    <h3 id="devModalTitle" class="text-sm font-bold text-white">Developer Specs & Technical Overview</h3>
                 </div>
-                <button id="closeDevModalBtn" class="text-slate-400 hover:text-white text-base">
+                <button id="closeDevModalBtn" aria-label="Close portfolio specifications" class="text-slate-400 hover:text-white text-base">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
@@ -573,6 +603,7 @@
                     );
                     this.restrooms = records.map(item => this.normalizeRecord(item));
                     this.populateBuildingFilter();
+                    this.updateWebsiteUpdatedDate();
                     this.render();
                     })
                     .catch(error => {
@@ -592,6 +623,24 @@
                     return JSON.parse(localStorage.getItem('uc-restroom-reviews') || '[]');
                 } catch (error) {
                     return [];
+                }
+            }
+
+            updateWebsiteUpdatedDate() {
+                const dates = this.restrooms
+                    .map(item => item.lastUpdated || item.dateRated)
+                    .filter(Boolean)
+                    .sort();
+                const latest = dates[dates.length - 1];
+                const dateElement = document.getElementById('websiteUpdatedDate');
+
+                if (latest && dateElement) {
+                    dateElement.dateTime = latest;
+                    dateElement.textContent = new Date(`${latest}T00:00:00`).toLocaleDateString(undefined, {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric'
+                    });
                 }
             }
 
@@ -679,7 +728,9 @@
 
                 // Filter Drawer Toggle
                 document.getElementById('filterToggleBtn').addEventListener('click', () => {
-                    document.getElementById('filterDrawer').classList.toggle('hidden');
+                    const drawer = document.getElementById('filterDrawer');
+                    const isHidden = drawer.classList.toggle('hidden');
+                    document.getElementById('filterToggleBtn').setAttribute('aria-expanded', String(!isHidden));
                 });
 
                 // Quick Filter Chips
@@ -698,9 +749,17 @@
 
                 // Modal controls
                 const modal = document.getElementById('ratingModal');
-                document.getElementById('addBathroomBtn').addEventListener('click', () => modal.classList.remove('hidden'));
-                document.getElementById('closeModalBtn').addEventListener('click', () => modal.classList.add('hidden'));
-                document.getElementById('cancelFormBtn').addEventListener('click', () => modal.classList.add('hidden'));
+                const ratingButton = document.getElementById('addBathroomBtn');
+                const closeRatingModal = () => {
+                    modal.classList.add('hidden');
+                    ratingButton.focus();
+                };
+                ratingButton.addEventListener('click', () => {
+                    modal.classList.remove('hidden');
+                    document.querySelector('[name="building"]').focus();
+                });
+                document.getElementById('closeModalBtn').addEventListener('click', closeRatingModal);
+                document.getElementById('cancelFormBtn').addEventListener('click', closeRatingModal);
 
                 document.getElementById('ratingForm').addEventListener('submit', (event) => this.generateReviewJson(event));
                 document.getElementById('copyJsonBtn').addEventListener('click', () => this.copyReviewJson());
@@ -708,9 +767,20 @@
 
                 // Dev Specs Modal
                 const devModal = document.getElementById('devModal');
-                document.getElementById('openDevModal').addEventListener('click', () => devModal.classList.remove('hidden'));
-                document.getElementById('closeDevModalBtn').addEventListener('click', () => devModal.classList.add('hidden'));
-                document.getElementById('devModalDismiss').addEventListener('click', () => devModal.classList.add('hidden'));
+                const devButton = document.getElementById('openDevModal');
+                const closeDevModal = () => {
+                    devModal.classList.add('hidden');
+                    devButton.focus();
+                };
+                devButton.addEventListener('click', () => devModal.classList.remove('hidden'));
+                document.getElementById('closeDevModalBtn').addEventListener('click', closeDevModal);
+                document.getElementById('devModalDismiss').addEventListener('click', closeDevModal);
+                document.addEventListener('keydown', (event) => {
+                    if (event.key === 'Escape') {
+                        if (!modal.classList.contains('hidden')) closeRatingModal();
+                        if (!devModal.classList.contains('hidden')) closeDevModal();
+                    }
+                });
 
                 // Recenter & Geolocation Buttons
                 document.getElementById('resetMapCenter').addEventListener('click', () => {
@@ -779,6 +849,7 @@
                 this.restrooms = this.restrooms.filter(item => item.id !== review.id);
                 this.restrooms.push(this.normalizeRecord(review));
                 this.populateBuildingFilter();
+                this.updateWebsiteUpdatedDate();
                 this.render();
 
                 document.getElementById('jsonOutput').value = JSON.stringify(review, null, 2);
