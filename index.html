@@ -118,6 +118,23 @@
             border-color: #E00122;
             box-shadow: 0 0 0 1px #E00122;
         }
+
+        .amenity-option {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.5rem;
+            background: #020617;
+            border: 1px solid #1e293b;
+            border-radius: 0.5rem;
+            color: #cbd5e1;
+            cursor: pointer;
+        }
+
+        .amenity-option:has(input:checked) {
+            border-color: #E00122;
+            color: #fff;
+        }
     </style>
 </head>
 <body class="h-full flex flex-col bg-slate-950 text-slate-100 overflow-hidden">
@@ -274,19 +291,16 @@
             <div class="p-5 space-y-4 max-h-[80vh] overflow-y-auto text-xs text-slate-300">
                 <p class="text-slate-400">Fill this out, then copy the generated object into the array in <strong class="text-white">data.json</strong>.</p>
                 <form id="ratingForm" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <label class="sm:col-span-2">Building<input required name="building" placeholder="e.g. Tangeman University Center (TUC)" class="form-input"></label>
-                    <label>Room number<input required name="roomNumber" placeholder="310" class="form-input"></label>
-                    <label>Floor<input required name="floor" placeholder="3rd Floor" class="form-input"></label>
-                    <label>Latitude<input required name="lat" type="number" step="any" placeholder="39.1317" class="form-input"></label>
-                    <label>Longitude<input required name="lng" type="number" step="any" placeholder="-84.5186" class="form-input"></label>
-                    <label>Gender<select name="gender" class="form-input"><option>Gender-Neutral</option><option>Women's</option><option>Men's</option><option>Single Stall</option></select></label>
-                    <label>Vibe<input required name="vibe" placeholder="Quiet and clean" class="form-input"></label>
-                    <label>Cleanliness (1-5)<input required name="cleanliness" type="number" min="1" max="5" step="0.1" value="5" class="form-input"></label>
-                    <label>Privacy (1-5)<input required name="privacy" type="number" min="1" max="5" step="0.1" value="5" class="form-input"></label>
-                    <label>Noise (1-5)<input required name="noise" type="number" min="1" max="5" step="0.1" value="1" class="form-input"></label>
-                    <label class="sm:col-span-2">Amenities <span class="text-slate-500">(comma separated)</span><input name="amenities" placeholder="Feminine Products, Full Doors, Bag Hook" class="form-input"></label>
+                    <label class="sm:col-span-2">Building<select required name="building" class="form-input"><option value="">Choose a building</option><option>Tangeman University Center (TUC)</option><option>Carl H. Lindner Hall</option><option>Engineering Research Center (ERC)</option><option>Langsam Library</option><option>Old Chemistry Building</option><option>Steger Student Life Center</option><option>Swift Hall</option><option>Zimmer Hall</option></select></label>
+                    <label>Room number<select required name="roomNumber" class="form-input"><option value="">Choose a room</option><option>101</option><option>112</option><option>208</option><option>2120</option><option>230</option><option>304</option><option>310</option><option>420</option><option>515</option></select></label>
+                    <label>Floor<select required name="floor" class="form-input"><option value="">Choose a floor</option><option>1st Floor</option><option>2nd Floor</option><option>3rd Floor</option><option>4th Floor</option><option>5th Floor</option></select></label>
+                    <label>Gender<select required name="gender" class="form-input"><option>Gender-Neutral</option><option>Women's</option><option>Men's</option><option>Single Stall</option></select></label>
+                    <label>Vibe<select required name="vibe" class="form-input"><option>Bright and Modern</option><option>Quiet Study Break</option><option>Hidden Campus Gem</option><option>Busy but Reliable</option><option>Clean and Practical</option><option>Classic Academic</option><option>Peaceful Retreat</option><option>Quick In-and-Out</option><option>Spacious and Open</option><option>Recently Renovated</option></select></label>
+                    <label>Cleanliness (1-5)<select required name="cleanliness" class="form-input"><option value="5">5.0 - Exceptional</option><option value="4.5">4.5 - Excellent</option><option value="4">4.0 - Good</option><option value="3.5">3.5 - Fair</option><option value="3">3.0 - Acceptable</option><option value="2">2.0 - Needs attention</option><option value="1">1.0 - Poor</option></select></label>
+                    <label>Privacy (1-5)<select required name="privacy" class="form-input"><option value="5">5.0 - Very private</option><option value="4.5">4.5 - Highly private</option><option value="4">4.0 - Private</option><option value="3">3.0 - Standard</option><option value="2">2.0 - Exposed</option><option value="1">1.0 - Very exposed</option></select></label>
+                    <label>Noise (1-5)<select required name="noise" class="form-input"><option value="1">1.0 - Pin-drop quiet</option><option value="2">2.0 - Quiet</option><option value="3">3.0 - Moderate</option><option value="4">4.0 - Busy</option><option value="5">5.0 - Very busy</option></select></label>
+                    <fieldset class="sm:col-span-2"><legend>Amenities <span class="text-slate-500">(choose all that apply)</span></legend><div class="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-1"><label class="amenity-option"><input type="checkbox" name="amenities" value="Feminine Products"> Feminine Products</label><label class="amenity-option"><input type="checkbox" name="amenities" value="Full Doors"> Full Doors</label><label class="amenity-option"><input type="checkbox" name="amenities" value="Bag Hook"> Bag Hook</label><label class="amenity-option"><input type="checkbox" name="amenities" value="Power Outlets"> Power Outlets</label><label class="amenity-option"><input type="checkbox" name="amenities" value="Coat Rack"> Coat Rack</label><label class="amenity-option"><input type="checkbox" name="amenities" value="Touchless Faucets"> Touchless Faucets</label><label class="amenity-option"><input type="checkbox" name="amenities" value="Automatic Soap"> Automatic Soap</label><label class="amenity-option"><input type="checkbox" name="amenities" value="Automatic Flush"> Automatic Flush</label><label class="amenity-option"><input type="checkbox" name="amenities" value="Hand Dryer"> Hand Dryer</label><label class="amenity-option"><input type="checkbox" name="amenities" value="Paper Towels"> Paper Towels</label><label class="amenity-option"><input type="checkbox" name="amenities" value="Full-Length Mirror"> Full-Length Mirror</label><label class="amenity-option"><input type="checkbox" name="amenities" value="ADA Accessible"> ADA Accessible</label></div></fieldset>
                     <label class="sm:col-span-2">Review<textarea required name="review" rows="3" placeholder="What stood out about this restroom?" class="form-input"></textarea></label>
-                    <label class="sm:col-span-2 inline-flex items-center gap-2"><input name="ada" type="checkbox" class="accent-uc-red"> ADA accessible</label>
                     <button type="submit" class="sm:col-span-2 py-2 rounded-xl bg-uc-red hover:bg-uc-darkred text-white font-semibold transition"><i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Generate JSON</button>
                 </form>
                 <div id="jsonOutputPanel" class="hidden space-y-2">
@@ -345,9 +359,6 @@
     </div>
 
     <script>
-        // CARTO browser tokens are public by design; restrict this key by domain in CARTO.
-        const CARTO_API_KEY = '';
-
         // Campus Building Dataset with Exact Coordinates for UC Main Campus
         const UC_BUILDINGS = [
             { name: "Tangeman University Center (TUC)", lat: 39.1319, lng: -84.5160 },
@@ -361,6 +372,17 @@
             { name: "Braunstein Hall", lat: 39.1348, lng: -84.5150 },
             { name: "Swift Hall", lat: 39.1330, lng: -84.5156 }
         ];
+
+        const FORM_BUILDING_COORDINATES = {
+            "Tangeman University Center (TUC)": { lat: 39.1317, lng: -84.5186 },
+            "Carl H. Lindner Hall": { lat: 39.1332, lng: -84.5152 },
+            "Engineering Research Center (ERC)": { lat: 39.1328, lng: -84.5175 },
+            "Langsam Library": { lat: 39.1345, lng: -84.5168 },
+            "Old Chemistry Building": { lat: 39.1338, lng: -84.5180 },
+            "Steger Student Life Center": { lat: 39.1322, lng: -84.5182 },
+            "Swift Hall": { lat: 39.1335, lng: -84.5172 },
+            "Zimmer Hall": { lat: 39.1331, lng: -84.5188 }
+        };
 
         // Default Authentic Pre-Populated Data for UC Campus
         const DEFAULT_BATHROOMS = [
@@ -527,11 +549,9 @@
                     zoomControl: false
                 }).setView([centerLat, centerLng], 17);
 
-                // Add dark map tiles for Bearcat dark mode aesthetic
-                const tileUrl = `https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png${CARTO_API_KEY ? `?api_key=${encodeURIComponent(CARTO_API_KEY)}` : ''}`;
-                L.tileLayer(tileUrl, {
-                    attribution: '&copy; OpenStreetMap &copy; CARTO',
-                    subdomains: 'abcd',
+                // OpenStreetMap tiles keep the static app free of API keys.
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; OpenStreetMap contributors',
                     maxZoom: 19
                 }).addTo(this.map);
 
@@ -622,19 +642,17 @@
                 const building = formData.get('building').trim();
                 const roomNumber = formData.get('roomNumber').trim();
                 const idBase = `${building}-${roomNumber}`.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-                const amenities = formData.get('amenities')
-                    .split(',')
-                    .map(value => value.trim())
-                    .filter(Boolean);
+                const amenities = formData.getAll('amenities');
+                const coordinates = FORM_BUILDING_COORDINATES[building];
                 const review = {
                     id: idBase,
                     building,
                     roomNumber,
                     floor: formData.get('floor').trim(),
-                    lat: Number(formData.get('lat')),
-                    lng: Number(formData.get('lng')),
+                    lat: coordinates.lat,
+                    lng: coordinates.lng,
                     gender: formData.get('gender'),
-                    ada: formData.get('ada') === 'on',
+                    ada: amenities.includes('ADA Accessible'),
                     cleanliness: Number(formData.get('cleanliness')),
                     privacy: Number(formData.get('privacy')),
                     noise: Number(formData.get('noise')),
