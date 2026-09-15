@@ -420,10 +420,18 @@
                     <p class="sm:col-span-2 text-center text-[11px] text-slate-400">Paste the JSON code into this form for your rating to be added to the website.</p>
                 </form>
                 <div id="jsonOutputPanel" class="hidden space-y-2">
-                    <div class="flex items-center justify-between"><strong class="text-white">Generated JSON</strong><button type="button" id="copyJsonBtn" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700"><i class="fa-regular fa-copy mr-1"></i> Copy</button></div>
+                    <div class="rounded-xl border border-emerald-800/60 bg-emerald-950/30 p-3 text-[11px] text-emerald-100" role="status">
+                        <strong class="block text-emerald-300 mb-1">Submit your rating</strong>
+                        <ol class="list-decimal pl-4 space-y-0.5">
+                            <li>Copy the JSON below.</li>
+                            <li>Open the Google Form.</li>
+                            <li>Paste the JSON into “Paste Here” and submit the form.</li>
+                        </ol>
+                    </div>
+                    <div class="flex items-center justify-between"><strong class="text-white">Generated JSON</strong><button type="button" id="copyJsonBtn" aria-label="Copy generated JSON" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700"><i class="fa-regular fa-copy mr-1"></i> Copy JSON</button></div>
                     <textarea id="jsonOutput" readonly rows="12" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-[11px] leading-relaxed text-emerald-300 font-mono focus:outline-none"></textarea>
-                    <a id="openGoogleFormBtn" href="https://forms.gle/PYAoSnHYbvv6SBXJ7" target="_blank" rel="noopener noreferrer" class="block w-full text-center py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold transition"><i class="fa-solid fa-arrow-up-right-from-square mr-1"></i> Open Google Form to Submit</a>
-                    <p id="copyStatus" class="text-[11px] text-emerald-400"></p>
+                    <a id="openGoogleFormBtn" href="https://forms.gle/PYAoSnHYbvv6SBXJ7" target="_blank" rel="noopener noreferrer" class="block w-full text-center py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold transition"><i class="fa-solid fa-arrow-up-right-from-square mr-1"></i> Step 2: Open Google Form to Submit</a>
+                    <p id="copyStatus" class="text-[11px] text-emerald-400" aria-live="polite"></p>
                 </div>
                 <button type="button" id="cancelFormBtn" class="w-full py-2 rounded-xl border border-slate-700 text-xs font-semibold text-slate-300 hover:bg-slate-800 transition">Close</button>
             </div>
@@ -585,6 +593,7 @@
                 this.map = null;
                 this.markers = {};
                 this.activeFilter = 'all';
+                this.pageLoadedAt = new Date();
                 
                 this.initMap();
                 this.initDOM();
@@ -628,21 +637,34 @@
             }
 
             updateWebsiteUpdatedDate() {
-                const dates = this.restrooms
-                    .map(item => item.lastUpdated || item.dateRated)
-                    .filter(Boolean)
-                    .sort();
-                const latest = dates[dates.length - 1];
+                const latestItem = [...this.restrooms]
+                    .filter(item => item.lastUpdated || item.dateRated)
+                    .sort((first, second) => (first.lastUpdated || first.dateRated).localeCompare(second.lastUpdated || second.dateRated))
+                    .pop();
+                const latest = latestItem?.lastUpdated || latestItem?.dateRated;
                 const dateElement = document.getElementById('websiteUpdatedDate');
 
                 if (latest && dateElement) {
-                    dateElement.dateTime = latest;
-                    dateElement.textContent = new Date(`${latest}T00:00:00`).toLocaleDateString(undefined, {
+                    const timeSource = latestItem.lastUpdatedTime || latestItem.dateRatedTime || this.pageLoadedAt.toISOString().slice(11, 19);
+                    const dateTime = `${latest}T${timeSource}`;
+                    dateElement.dateTime = dateTime;
+                    dateElement.textContent = `${new Date(`${latest}T00:00:00`).toLocaleDateString(undefined, {
                         year: 'numeric',
                         month: 'short',
                         day: 'numeric'
-                    });
+                    })} at ${this.formatTime(timeSource)}`;
+                    dateElement.title = latestItem.lastUpdatedTime || latestItem.dateRatedTime
+                        ? 'Time recorded in the review data.'
+                        : 'Date from the latest review; time is when this page was last checked.';
                 }
+            }
+
+            formatTime(value) {
+                const [hours, minutes] = value.split(':');
+                return new Date(2000, 0, 1, Number(hours), Number(minutes)).toLocaleTimeString(undefined, {
+                    hour: 'numeric',
+                    minute: '2-digit'
+                });
             }
 
             normalizeRecord(item) {
