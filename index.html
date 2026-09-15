@@ -386,7 +386,7 @@
             <!-- List Footer Info -->
             <div class="p-3 border-t border-slate-800 bg-slate-950 text-center text-[11px] text-slate-500 flex flex-wrap gap-2 justify-between items-center">
                 <span id="resultCount" aria-live="polite">Showing 0 restrooms</span>
-                <span class="text-slate-400">Website last updated <time id="websiteUpdatedDate">--</time></span>
+                <span class="text-slate-400">Last pushed to GitHub <time id="websiteUpdatedDate">Checking...</time></span>
             </div>
         </div>
     </main>
@@ -642,34 +642,32 @@
             }
 
             updateWebsiteUpdatedDate() {
-                const latestItem = [...this.restrooms]
-                    .filter(item => item.lastUpdated || item.dateRated)
-                    .sort((first, second) => (first.lastUpdated || first.dateRated).localeCompare(second.lastUpdated || second.dateRated))
-                    .pop();
-                const latest = latestItem?.lastUpdated || latestItem?.dateRated;
                 const dateElement = document.getElementById('websiteUpdatedDate');
-
-                if (latest && dateElement) {
-                    const timeSource = latestItem.lastUpdatedTime || latestItem.dateRatedTime || this.pageLoadedAt.toISOString().slice(11, 19);
-                    const dateTime = `${latest}T${timeSource}`;
-                    dateElement.dateTime = dateTime;
-                    dateElement.textContent = `${new Date(`${latest}T00:00:00`).toLocaleDateString(undefined, {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric'
-                    })} at ${this.formatTime(timeSource)}`;
-                    dateElement.title = latestItem.lastUpdatedTime || latestItem.dateRatedTime
-                        ? 'Time recorded in the review data.'
-                        : 'Date from the latest review; time is when this page was last checked.';
-                }
+                fetch('https://api.github.com/repos/scarlaos/ucbathroomrank', { headers: { Accept: 'application/vnd.github+json' } })
+                    .then(response => {
+                        if (!response.ok) throw new Error(`GitHub API ${response.status}`);
+                        return response.json();
+                    })
+                    .then(repository => this.setGitHubPushDate(repository.pushed_at))
+                    .catch(() => {
+                        if (dateElement) {
+                            dateElement.textContent = 'Unavailable';
+                            dateElement.title = 'GitHub push time could not be loaded.';
+                        }
+                    });
             }
 
-            formatTime(value) {
-                const [hours, minutes] = value.split(':');
-                return new Date(2000, 0, 1, Number(hours), Number(minutes)).toLocaleTimeString(undefined, {
-                    hour: 'numeric',
-                    minute: '2-digit'
+            setGitHubPushDate(value) {
+                const dateElement = document.getElementById('websiteUpdatedDate');
+                if (!dateElement || !value) return;
+                const pushedAt = new Date(value);
+                dateElement.dateTime = pushedAt.toISOString();
+                dateElement.textContent = pushedAt.toLocaleString('en-US', {
+                    timeZone: 'America/New_York',
+                    dateStyle: 'medium',
+                    timeStyle: 'short'
                 });
+                dateElement.title = 'Latest repository push, shown in Eastern Time.';
             }
 
             normalizeRecord(item) {
@@ -1075,18 +1073,12 @@
                 Object.values(this.markers).forEach(m => this.map.removeLayer(m));
                 this.markers = {};
 
-                const buildingGroups = new Map();
-                items.forEach(item => {
-                    const coordinates = BUILDING_COORDINATES[item.building];
-                    const key = coordinates ? `${coordinates.lat},${coordinates.lng}` : `${item.lat},${item.lng}`;
-                    if (!buildingGroups.has(key)) buildingGroups.set(key, { item, coordinates, bathrooms: [] });
-                    buildingGroups.get(key).bathrooms.push(item);
-                });
-
-                buildingGroups.forEach(({ item, coordinates, bathrooms }) => {
-                    const mapPosition = coordinates
-                        ? [coordinates.lat, coordinates.lng]
-                        : [Number(item.lat), Number(item.lng)];
+                this.getBuildingLocations().forEach(({ name, coordinates }) => {
+                    const bathrooms = items.filter(item => {
+                        const itemCoordinates = BUILDING_COORDINATES[item.building];
+                        return itemCoordinates && itemCoordinates.lat === coordinates.lat && itemCoordinates.lng === coordinates.lng;
+                    });
+                    const mapPosition = [coordinates.lat, coordinates.lng];
                     const customIcon = L.divIcon({
                         className: 'custom-map-pin',
                         html: `
@@ -1126,9 +1118,9 @@
                     }).join('');
                     const popupHTML = `
                         <div class="p-1 w-64 text-xs">
-                            <span class="text-[10px] font-bold text-uc-red uppercase tracking-wider">${this.escapeHtml(item.building)}</span>
+                            <span class="text-[10px] font-bold text-uc-red uppercase tracking-wider">${this.escapeHtml(name)}</span>
                             <h4 class="text-sm font-bold text-white mb-1">${bathrooms.length} bathroom${bathrooms.length === 1 ? '' : 's'} here</h4>
-                            ${bathroomDetails}
+                            ${bathrooms.length ? bathroomDetails : '<p class="text-slate-400 mt-2">No ratings yet. Be the first to review this building.</p>'}
                         </div>
                     `;
 
@@ -1137,6 +1129,15 @@
                         this.markers[bathroom.id] = marker;
                     });
                 });
+            }
+
+            getBuildingLocations() {
+                const locations = new Map();
+                Object.entries(BUILDING_COORDINATES).forEach(([name, coordinates]) => {
+                    const key = `${coordinates.lat},${coordinates.lng}`;
+                    if (!locations.has(key)) locations.set(key, { name, coordinates });
+                });
+                return [...locations.values()];
             }
 
             escapeHtml(value) {
