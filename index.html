@@ -249,10 +249,10 @@
                     <i class="fa-solid fa-code text-indigo-400"></i>
                     <span class="hidden sm:inline">Portfolio Specs</span>
                 </button>
-                <a id="addBathroomBtn" href="https://forms.gle/PYAoSnHYbvv6SBXJ7" target="_blank" rel="noopener noreferrer" title="Open the restroom rating form" class="px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-uc-red hover:bg-uc-darkred text-white shadow-md shadow-uc-red/20 flex items-center gap-2 transition transform active:scale-95">
+                <button id="addBathroomBtn" title="Open the JSON rating form" class="px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-uc-red hover:bg-uc-darkred text-white shadow-md shadow-uc-red/20 flex items-center gap-2 transition transform active:scale-95">
                     <i class="fa-solid fa-star"></i>
                     <span>Rate Restroom</span>
-                </a>
+                </button>
             </div>
         </div>
     </header>
@@ -387,6 +387,7 @@
                     <fieldset class="sm:col-span-2"><legend>Amenities</legend><div class="amenity-grid grid grid-cols-2 sm:grid-cols-3 gap-2 mt-1"><label class="amenity-option"><input type="checkbox" name="amenities" value="Feminine Products"> Feminine Products</label><label class="amenity-option"><input type="checkbox" name="amenities" value="Full Doors"> Full Doors</label><label class="amenity-option"><input type="checkbox" name="amenities" value="Bag Hook"> Bag Hook</label><label class="amenity-option"><input type="checkbox" name="amenities" value="Power Outlets"> Power Outlets</label><label class="amenity-option"><input type="checkbox" name="amenities" value="Coat Rack"> Coat Rack</label><label class="amenity-option"><input type="checkbox" name="amenities" value="Touchless Faucets"> Touchless Faucets</label><label class="amenity-option"><input type="checkbox" name="amenities" value="Automatic Soap"> Automatic Soap</label><label class="amenity-option"><input type="checkbox" name="amenities" value="Automatic Flush"> Automatic Flush</label><label class="amenity-option"><input type="checkbox" name="amenities" value="Hand Dryer"> Hand Dryer</label><label class="amenity-option"><input type="checkbox" name="amenities" value="Paper Towels"> Paper Towels</label><label class="amenity-option"><input type="checkbox" name="amenities" value="Full-Length Mirror"> Full-Length Mirror</label><label class="amenity-option"><input type="checkbox" name="amenities" value="ADA Accessible"> ADA Accessible</label></div></fieldset>
                     <label class="sm:col-span-2">Review<textarea required name="review" rows="3" placeholder="What stood out about this restroom?" class="form-input"></textarea></label>
                     <button type="submit" class="sm:col-span-2 py-2 rounded-xl bg-uc-red hover:bg-uc-darkred text-white font-semibold transition"><i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Generate JSON</button>
+                    <p class="sm:col-span-2 text-center text-[11px] text-slate-400">Paste the JSON code into this form for your rating to be added to the website.</p>
                 </form>
                 <div id="jsonOutputPanel" class="hidden space-y-2">
                     <div class="flex items-center justify-between"><strong class="text-white">Generated JSON</strong><button type="button" id="copyJsonBtn" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700"><i class="fa-regular fa-copy mr-1"></i> Copy</button></div>
@@ -697,6 +698,7 @@
 
                 // Modal controls
                 const modal = document.getElementById('ratingModal');
+                document.getElementById('addBathroomBtn').addEventListener('click', () => modal.classList.remove('hidden'));
                 document.getElementById('closeModalBtn').addEventListener('click', () => modal.classList.add('hidden'));
                 document.getElementById('cancelFormBtn').addEventListener('click', () => modal.classList.add('hidden'));
 
@@ -989,23 +991,27 @@
             }
 
             getMapPosition(item) {
-                const buildingKey = `${item.lat},${item.lng}`;
-                const sameBuilding = this.restrooms.filter(restroom => `${restroom.lat},${restroom.lng}` === buildingKey);
+                const coordinates = BUILDING_COORDINATES[item.building] || { lat: Number(item.lat), lng: Number(item.lng) };
+                const buildingKey = `${coordinates.lat},${coordinates.lng}`;
+                const sameBuilding = this.restrooms.filter(restroom => {
+                    const restroomCoordinates = BUILDING_COORDINATES[restroom.building] || { lat: Number(restroom.lat), lng: Number(restroom.lng) };
+                    return `${restroomCoordinates.lat},${restroomCoordinates.lng}` === buildingKey;
+                });
                 const index = sameBuilding.findIndex(restroom => restroom.id === item.id);
 
                 if (sameBuilding.length < 2 || index < 0) {
-                    return [item.lat, item.lng];
+                    return [coordinates.lat, coordinates.lng];
                 }
 
                 const positionsPerRing = 8;
                 const ring = Math.floor(index / positionsPerRing);
                 const position = index % positionsPerRing;
-                const radius = 0.0001 + ring * 0.00005;
+                const radius = 0.00003 + ring * 0.000015;
                 const angle = (position * Math.PI * 2) / positionsPerRing;
 
                 return [
-                    item.lat + Math.cos(angle) * radius,
-                    item.lng + Math.sin(angle) * radius
+                    coordinates.lat + Math.cos(angle) * radius,
+                    coordinates.lng + Math.sin(angle) * radius
                 ];
             }
 
