@@ -404,7 +404,7 @@
             </div>
 
             <div class="p-5 space-y-4 max-h-[80vh] overflow-y-auto text-xs text-slate-300">
-                <p class="border-l-2 border-uc-red pl-3 text-slate-400">Generate the JSON below first. Then copy it, open the Google Form, paste it into “Paste Here,” and submit your rating.</p>
+                <p class="border-l-2 border-slate-600 pl-3 text-slate-300">Generate the JSON below first. Then copy it, open the Google Form, paste it into “Paste Here,” and submit your rating.</p>
                 <form id="ratingForm" class="rating-grid grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <label class="sm:col-span-2">Building<select required name="building" class="form-input"><option value="">Choose a building</option><option>Tangeman University Center (TUC)</option><option>Lindner College of Business</option><option>Carl H. Lindner Hall</option><option>Engineering Research Center (ERC)</option><option>Langsam Library</option><option>Old Chemistry Building</option><option>Steger Student Life Center</option><option>Swift Hall</option><option>Zimmer Hall</option><option>Teachers-Dyer Complex</option><option>Teachers College</option><option>Braunstein Hall</option></select></label>
                     <label>Floor<select required name="floor" class="form-input"><option value="">Choose a floor</option><option>1st Floor</option><option>2nd Floor</option><option>3rd Floor</option><option>4th Floor</option><option>5th Floor</option></select></label>
@@ -591,7 +591,12 @@
                 
                 this.initMap();
                 this.initDOM();
+                window.addEventListener('resize', () => requestAnimationFrame(() => this.refreshMapLayout()));
                 this.loadData();
+            }
+
+            refreshMapLayout() {
+                if (this.map) this.map.invalidateSize({ pan: false, debounceMoveend: true });
             }
 
             loadData() {
@@ -609,6 +614,7 @@
                     this.populateBuildingFilter();
                     this.updateWebsiteUpdatedDate();
                     this.render();
+                    requestAnimationFrame(() => this.refreshMapLayout());
                     })
                     .catch(error => {
                     console.error('Unable to load data.json', error);
@@ -721,6 +727,13 @@
                 this.map = L.map('map', {
                     zoomControl: false
                 }).setView([centerLat, centerLng], 17);
+
+                if (window.ResizeObserver) {
+                    this.mapResizeObserver = new ResizeObserver(() => {
+                        requestAnimationFrame(() => this.refreshMapLayout());
+                    });
+                    this.mapResizeObserver.observe(document.getElementById('map'));
+                }
 
                 // OpenStreetMap tiles keep the static app free of API keys.
                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
