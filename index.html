@@ -92,6 +92,27 @@
             border: 0 !important;
         }
 
+        .bathroom-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 0.5rem;
+            max-height: 20rem;
+            overflow-y: auto;
+        }
+
+        .bathroom-grid article {
+            border: 1px solid #334155;
+            border-radius: 0.5rem;
+            padding: 0.5rem;
+            margin: 0;
+        }
+
+        @media (max-width: 640px) {
+            .bathroom-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
         .glass-panel {
             background: rgba(15, 23, 42, 0.85);
             backdrop-filter: blur(12px);
@@ -168,6 +189,51 @@
                 animation-duration: 0.01ms !important;
                 transition-duration: 0.01ms !important;
             }
+        }
+
+        body.light-mode {
+            background: #f1f5f9;
+            color: #172033;
+        }
+
+        body.light-mode header,
+        body.light-mode .directory-panel,
+        body.light-mode .modal-panel {
+            background: #ffffff;
+            color: #172033;
+        }
+
+        body.light-mode .directory-panel,
+        body.light-mode header {
+            border-color: #cbd5e1;
+        }
+
+        body.light-mode .bg-slate-900,
+        body.light-mode .bg-slate-950,
+        body.light-mode .bg-slate-900\/90 {
+            background-color: #ffffff;
+        }
+
+        body.light-mode .text-white,
+        body.light-mode .text-slate-100,
+        body.light-mode .text-slate-200,
+        body.light-mode .text-slate-300 {
+            color: #172033;
+        }
+
+        body.light-mode .text-slate-400,
+        body.light-mode .text-slate-500 {
+            color: #475569;
+        }
+
+        body.light-mode .bg-slate-800,
+        body.light-mode .bg-slate-950\/50 {
+            background-color: #e2e8f0;
+        }
+
+        body.light-mode .border-slate-800,
+        body.light-mode .border-slate-700 {
+            border-color: #cbd5e1;
         }
 
         @media (max-width: 640px) {
@@ -271,13 +337,9 @@
             </div>
 
             <div class="header-actions flex items-center space-x-2 sm:space-x-3">
-                <button id="locateMeBtn" aria-label="Locate me on the map" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 flex items-center gap-2 transition">
-                    <i class="fa-solid fa-location-crosshairs text-uc-red"></i>
-                    <span class="hidden sm:inline">Locate Me</span>
-                </button>
-                <button id="openDevModal" aria-label="Open portfolio specifications" class="portfolio-button px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 flex items-center gap-2 transition">
-                    <i class="fa-solid fa-code text-indigo-400"></i>
-                    <span class="hidden sm:inline">Portfolio Specs</span>
+                <button id="themeToggle" aria-label="Switch to light mode" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 flex items-center gap-2 transition">
+                    <i class="fa-solid fa-sun"></i>
+                    <span class="hidden sm:inline">Light Mode</span>
                 </button>
                 <button id="addBathroomBtn" title="Open the JSON rating form" aria-label="Rate a restroom and generate JSON" class="px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-uc-red hover:bg-uc-darkred text-white shadow-md shadow-uc-red/20 flex items-center gap-2 transition transform active:scale-95">
                     <i class="fa-solid fa-star"></i>
@@ -379,8 +441,20 @@
                 </div>
             </div>
 
+            <div class="px-4 pt-3 flex gap-1 border-b border-slate-800" role="tablist" aria-label="Restroom information views">
+                <button id="ratingsTab" role="tab" aria-selected="true" aria-controls="restroomList" class="px-3 py-2 text-xs font-semibold border-b-2 border-uc-red text-white">Ratings</button>
+                <button id="detailsTab" role="tab" aria-selected="false" aria-controls="detailsPanel" class="px-3 py-2 text-xs font-semibold border-b-2 border-transparent text-slate-400">Details</button>
+            </div>
+
             <div id="restroomList" class="flex-1 overflow-y-auto p-4 space-y-3">
                 <!-- Dynamically populated card items -->
+            </div>
+
+            <div id="detailsPanel" role="tabpanel" aria-labelledby="detailsTab" class="hidden flex-1 overflow-y-auto p-4">
+                <div class="space-y-4">
+                    <div class="text-center text-slate-500 py-6">Select a restroom from the ratings list or map.</div>
+                    <div class="border-t border-slate-800 pt-4 text-[11px] text-slate-500">UC Restroom Index is a non-commercial student project. Information is community-submitted and may change. The site owner is not liable for injuries, losses, access issues, or other problems related to using this information.</div>
+                </div>
             </div>
             
             <!-- List Footer Info -->
@@ -787,20 +861,13 @@
                 document.getElementById('copyJsonBtn').addEventListener('click', () => this.copyReviewJson());
                 document.querySelector('[name="dateRated"]').value = new Date().toISOString().slice(0, 10);
 
-                // Dev Specs Modal
-                const devModal = document.getElementById('devModal');
-                const devButton = document.getElementById('openDevModal');
-                const closeDevModal = () => {
-                    devModal.classList.add('hidden');
-                    devButton.focus();
-                };
-                devButton.addEventListener('click', () => devModal.classList.remove('hidden'));
-                document.getElementById('closeDevModalBtn').addEventListener('click', closeDevModal);
-                document.getElementById('devModalDismiss').addEventListener('click', closeDevModal);
+                document.getElementById('themeToggle').addEventListener('click', () => this.toggleTheme());
+                if (localStorage.getItem('uc-theme') === 'light') this.toggleTheme();
+                document.getElementById('ratingsTab').addEventListener('click', () => this.selectTab('ratings'));
+                document.getElementById('detailsTab').addEventListener('click', () => this.selectTab('details'));
                 document.addEventListener('keydown', (event) => {
                     if (event.key === 'Escape') {
                         if (!modal.classList.contains('hidden')) closeRatingModal();
-                        if (!devModal.classList.contains('hidden')) closeDevModal();
                     }
                 });
 
@@ -809,7 +876,42 @@
                     this.map.flyTo([39.1329, -84.5150], 17);
                 });
 
-                document.getElementById('locateMeBtn').addEventListener('click', () => this.locateUser());
+            }
+
+            toggleTheme() {
+                const isLight = document.body.classList.toggle('light-mode');
+                const button = document.getElementById('themeToggle');
+                button.setAttribute('aria-label', isLight ? 'Switch to dark mode' : 'Switch to light mode');
+                button.querySelector('span').textContent = isLight ? 'Dark Mode' : 'Light Mode';
+                button.querySelector('i').className = isLight ? 'fa-solid fa-moon' : 'fa-solid fa-sun';
+                localStorage.setItem('uc-theme', isLight ? 'light' : 'dark');
+                this.refreshMapLayout();
+            }
+
+            selectTab(tab) {
+                const ratings = tab === 'ratings';
+                document.getElementById('restroomList').classList.toggle('hidden', !ratings);
+                document.getElementById('detailsPanel').classList.toggle('hidden', ratings);
+                document.getElementById('ratingsTab').setAttribute('aria-selected', String(ratings));
+                document.getElementById('detailsTab').setAttribute('aria-selected', String(!ratings));
+                document.getElementById('ratingsTab').classList.toggle('border-uc-red', ratings);
+                document.getElementById('detailsTab').classList.toggle('border-uc-red', !ratings);
+            }
+
+            showDetails(id) {
+                const item = this.restrooms.find(review => review.id === id);
+                if (!item) return;
+                const amenities = item.amenityLabels.length ? item.amenityLabels.map(value => `<span class="inline-block bg-slate-800 text-slate-300 px-2 py-1 rounded mr-1 mb-1">${this.escapeHtml(value)}</span>`).join('') : '<span class="text-slate-500">None listed</span>';
+                document.getElementById('detailsPanel').innerHTML = `
+                    <article class="bg-slate-950 border border-slate-800 rounded-xl p-4 space-y-3">
+                        <div><div class="text-[10px] uppercase tracking-wider text-uc-red">${this.escapeHtml(item.building)}</div><h2 class="text-lg font-bold text-white">${this.escapeHtml(item.floor || 'Restroom')}</h2></div>
+                        <div class="grid grid-cols-3 gap-2 text-center"><div class="bg-slate-900 rounded p-2"><strong class="text-amber-400">${Number(item.cleanliness).toFixed(1)}</strong><div class="text-[10px] text-slate-500">Cleanliness</div></div><div class="bg-slate-900 rounded p-2"><strong class="text-white">${Number(item.privacyScore).toFixed(1)}</strong><div class="text-[10px] text-slate-500">Privacy</div></div><div class="bg-slate-900 rounded p-2"><strong class="text-white">${Number(item.noiseScore).toFixed(1)}</strong><div class="text-[10px] text-slate-500">Noise</div></div></div>
+                        <dl class="space-y-2 text-xs text-slate-300"><div><dt class="text-slate-500">Gender</dt><dd>${this.escapeHtml(item.gender || 'Not listed')}</dd></div><div><dt class="text-slate-500">ADA accessible</dt><dd>${item.ada ? 'Yes' : 'No'}</dd></div><div><dt class="text-slate-500">Vibe</dt><dd>${this.escapeHtml(item.vibe || 'Not listed')}</dd></div><div><dt class="text-slate-500">Rated by</dt><dd>${this.escapeHtml(item.ratedBy || 'Olivia')}</dd></div><div><dt class="text-slate-500">Date rated</dt><dd>${this.escapeHtml(item.dateRated || item.lastUpdated || 'Not listed')}</dd></div></dl>
+                        <div><div class="text-xs text-slate-500 mb-1">Amenities</div>${amenities}</div>
+                        <p class="border-t border-slate-800 pt-3 text-sm text-slate-300 italic">"${this.escapeHtml(item.review || 'No review notes provided.')}"</p>
+                        <p class="text-[11px] text-slate-500">This is a non-commercial student project. Information is community-submitted. The site owner is not liable for injuries, losses, access issues, or other problems related to using this information.</p>
+                    </article>`;
+                this.selectTab('details');
             }
 
             locateUser() {
@@ -1045,7 +1147,7 @@
                             <button class="focus-map-btn text-xs text-slate-400 hover:text-white font-medium flex items-center gap-1" data-id="${item.id}">
                                 <i class="fa-solid fa-map-pin text-uc-red"></i> Focus on Map
                             </button>
-                            ${item.localOnly ? `<div class="flex items-center gap-2"><button class="edit-review-btn text-amber-300 hover:text-amber-200 font-medium" data-id="${item.id}"><i class="fa-solid fa-pen mr-1"></i>Edit</button><button class="delete-review-btn text-red-300 hover:text-red-200 font-medium" data-id="${item.id}"><i class="fa-solid fa-trash mr-1"></i>Delete</button></div>` : ''}
+                            <div class="flex items-center gap-2"><button class="show-details-btn text-slate-300 hover:text-white font-medium" data-id="${item.id}">Details</button>${item.localOnly ? `<button class="edit-review-btn text-amber-300 hover:text-amber-200 font-medium" data-id="${item.id}"><i class="fa-solid fa-pen mr-1"></i>Edit</button><button class="delete-review-btn text-red-300 hover:text-red-200 font-medium" data-id="${item.id}"><i class="fa-solid fa-trash mr-1"></i>Delete</button>` : ''}</div>
                         </div>
                     `;
 
@@ -1064,6 +1166,9 @@
                         const item = this.restrooms.find(review => review.id === event.currentTarget.dataset.id);
                         if (item) this.openRatingForm(item);
                     });
+                });
+                document.querySelectorAll('.show-details-btn').forEach(btn => {
+                    btn.addEventListener('click', (event) => this.showDetails(event.currentTarget.dataset.id));
                 });
                 document.querySelectorAll('.delete-review-btn').forEach(btn => {
                     btn.addEventListener('click', (event) => this.deleteLocalReview(event.currentTarget.dataset.id));
@@ -1100,7 +1205,7 @@
                             ? bathroom.amenityLabels.map(amenity => `<span class="inline-block bg-slate-800 text-slate-300 px-1.5 py-0.5 rounded mr-1 mb-1">${this.escapeHtml(amenity)}</span>`).join('')
                             : '<span class="text-slate-500">None listed</span>';
                         return `
-                            <article class="border-t border-slate-700 pt-2 mt-2">
+                            <article>
                                 <h4 class="text-sm font-bold text-white">${this.escapeHtml(bathroom.floor || 'Restroom')}</h4>
                                 <div class="grid grid-cols-3 gap-1 my-2 text-center">
                                     <div class="bg-slate-900 rounded p-1"><div class="text-amber-400 font-bold">${Number(bathroom.cleanliness).toFixed(1)}</div><div class="text-[9px] text-slate-500">Clean</div></div>
@@ -1115,6 +1220,7 @@
                                 </div>
                                 <div class="mt-2"><div class="text-[10px] text-slate-500 mb-1">Amenities</div>${amenities}</div>
                                 <p class="text-[11px] text-slate-300 italic mt-2">"${this.escapeHtml(bathroom.review || 'No review notes provided.')}"</p>
+                                <button onclick="window.app.showDetails('${this.escapeHtml(bathroom.id)}')" class="w-full mt-2 rounded bg-uc-red text-white py-1 text-[11px] font-semibold">Open Details Tab</button>
                             </article>
                         `;
                     }).join('');
@@ -1122,7 +1228,7 @@
                         <div class="p-1 w-64 text-xs">
                             <span class="text-[10px] font-bold text-uc-red uppercase tracking-wider">${this.escapeHtml(name)}</span>
                             <h4 class="text-sm font-bold text-white mb-1">${bathrooms.length} bathroom${bathrooms.length === 1 ? '' : 's'} here</h4>
-                            ${bathrooms.length ? bathroomDetails : '<p class="text-slate-400 mt-2">No ratings yet. Be the first to review this building.</p>'}
+                            ${bathrooms.length ? `<div class="bathroom-grid">${bathroomDetails}</div>` : '<p class="text-slate-400 mt-2">No ratings yet. Be the first to review this building.</p>'}
                         </div>
                     `;
 
