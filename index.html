@@ -404,10 +404,7 @@
             </div>
 
             <div class="p-5 space-y-4 max-h-[80vh] overflow-y-auto text-xs text-slate-300">
-                <div class="rounded-xl border border-amber-800/60 bg-amber-950/30 p-3 text-amber-100" role="note">
-                    <strong class="block text-amber-300">Important: generate the JSON first.</strong>
-                    <span>After you generate it, copy the JSON, open the Google Form, paste it into “Paste Here,” and submit your rating.</span>
-                </div>
+                <p class="border-l-2 border-uc-red pl-3 text-slate-400">Generate the JSON below first. Then copy it, open the Google Form, paste it into “Paste Here,” and submit your rating.</p>
                 <form id="ratingForm" class="rating-grid grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <label class="sm:col-span-2">Building<select required name="building" class="form-input"><option value="">Choose a building</option><option>Tangeman University Center (TUC)</option><option>Lindner College of Business</option><option>Carl H. Lindner Hall</option><option>Engineering Research Center (ERC)</option><option>Langsam Library</option><option>Old Chemistry Building</option><option>Steger Student Life Center</option><option>Swift Hall</option><option>Zimmer Hall</option><option>Teachers-Dyer Complex</option><option>Teachers College</option><option>Braunstein Hall</option></select></label>
                     <label>Floor<select required name="floor" class="form-input"><option value="">Choose a floor</option><option>1st Floor</option><option>2nd Floor</option><option>3rd Floor</option><option>4th Floor</option><option>5th Floor</option></select></label>
@@ -424,17 +421,9 @@
                     <p class="sm:col-span-2 text-center text-[11px] text-slate-400">Paste the JSON code into this form for your rating to be added to the website.</p>
                 </form>
                 <div id="jsonOutputPanel" class="hidden space-y-2">
-                    <div class="rounded-xl border border-emerald-800/60 bg-emerald-950/30 p-3 text-[11px] text-emerald-100" role="status">
-                        <strong class="block text-emerald-300 mb-1">Submit your rating</strong>
-                        <ol class="list-decimal pl-4 space-y-0.5">
-                            <li>Copy the JSON below.</li>
-                            <li>Open the Google Form.</li>
-                            <li>Paste the JSON into “Paste Here” and submit the form.</li>
-                        </ol>
-                    </div>
                     <div class="flex items-center justify-between"><strong class="text-white">Generated JSON</strong><button type="button" id="copyJsonBtn" aria-label="Copy generated JSON" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700"><i class="fa-regular fa-copy mr-1"></i> Copy JSON</button></div>
                     <textarea id="jsonOutput" readonly rows="12" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-[11px] leading-relaxed text-emerald-300 font-mono focus:outline-none"></textarea>
-                    <a id="openGoogleFormBtn" href="https://forms.gle/PYAoSnHYbvv6SBXJ7" target="_blank" rel="noopener noreferrer" class="block w-full text-center py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold transition"><i class="fa-solid fa-arrow-up-right-from-square mr-1"></i> Step 2: Open Google Form to Submit</a>
+                    <a id="openGoogleFormBtn" href="https://forms.gle/PYAoSnHYbvv6SBXJ7" target="_blank" rel="noopener noreferrer" class="block w-full text-center py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold transition"><i class="fa-solid fa-arrow-up-right-from-square mr-1"></i> Open Google Form to Submit</a>
                     <p id="copyStatus" class="text-[11px] text-emerald-400" aria-live="polite"></p>
                 </div>
                 <button type="button" id="cancelFormBtn" class="w-full py-2 rounded-xl border border-slate-700 text-xs font-semibold text-slate-300 hover:bg-slate-800 transition">Close</button>
@@ -490,31 +479,31 @@
     <script>
         // Campus Building Dataset with Exact Coordinates for UC Main Campus
         const UC_BUILDINGS = [
-            { name: "Tangeman University Center (TUC)", lat: 39.1319, lng: -84.5160 },
-            { name: "Lindner College of Business", lat: 39.1340, lng: -84.5126 },
-            { name: "Engineering Research Center (ERC)", lat: 39.1332, lng: -84.5140 },
-            { name: "Steger Student Life Center", lat: 39.1323, lng: -84.5165 },
-            { name: "Langsam Library", lat: 39.1336, lng: -84.5150 },
-            { name: "Old Chemistry Building", lat: 39.1344, lng: -84.5156 },
-            { name: "Zimmer Hall", lat: 39.1337, lng: -84.5164 },
-            { name: "Teachers-Dyer Complex", lat: 39.1310, lng: -84.5170 },
-            { name: "Braunstein Hall", lat: 39.1348, lng: -84.5150 },
-            { name: "Swift Hall", lat: 39.1330, lng: -84.5156 }
+            { name: "Tangeman University Center (TUC)", lat: 39.131518, lng: -84.517482 },
+            { name: "Lindner College of Business", lat: 39.133839, lng: -84.514456 },
+            { name: "Engineering Research Center (ERC)", lat: 39.133002, lng: -84.516774 },
+            { name: "Steger Student Life Center", lat: 39.132381, lng: -84.516539 },
+            { name: "Langsam Library", lat: 39.134441, lng: -84.515609 },
+            { name: "Old Chemistry Building", lat: 39.133256, lng: -84.517600 },
+            { name: "Zimmer Hall", lat: 39.133474, lng: -84.516817 },
+            { name: "Teachers-Dyer Complex", lat: 39.130435, lng: -84.518557 },
+            { name: "Braunstein Hall", lat: 39.132964, lng: -84.518596 },
+            { name: "Swift Hall", lat: 39.132459, lng: -84.517398 }
         ];
 
         const BUILDING_COORDINATES = {
-            "Tangeman University Center (TUC)": { lat: 39.1319, lng: -84.5160 },
-            "Lindner College of Business": { lat: 39.1340, lng: -84.5126 },
-            "Carl H. Lindner Hall": { lat: 39.1340, lng: -84.5126 },
-            "Engineering Research Center (ERC)": { lat: 39.1332, lng: -84.5140 },
-            "Langsam Library": { lat: 39.1336, lng: -84.5150 },
-            "Old Chemistry Building": { lat: 39.1344, lng: -84.5156 },
-            "Steger Student Life Center": { lat: 39.1323, lng: -84.5165 },
-            "Swift Hall": { lat: 39.1330, lng: -84.5156 },
-            "Zimmer Hall": { lat: 39.1337, lng: -84.5164 },
-            "Teachers-Dyer Complex": { lat: 39.1310, lng: -84.5170 },
-            "Teachers College": { lat: 39.1310, lng: -84.5170 },
-            "Braunstein Hall": { lat: 39.1348, lng: -84.5150 }
+            "Tangeman University Center (TUC)": { lat: 39.131518, lng: -84.517482 },
+            "Lindner College of Business": { lat: 39.133839, lng: -84.514456 },
+            "Carl H. Lindner Hall": { lat: 39.133839, lng: -84.514456 },
+            "Engineering Research Center (ERC)": { lat: 39.133002, lng: -84.516774 },
+            "Langsam Library": { lat: 39.134441, lng: -84.515609 },
+            "Old Chemistry Building": { lat: 39.133256, lng: -84.517600 },
+            "Steger Student Life Center": { lat: 39.132381, lng: -84.516539 },
+            "Swift Hall": { lat: 39.132459, lng: -84.517398 },
+            "Zimmer Hall": { lat: 39.133474, lng: -84.516817 },
+            "Teachers-Dyer Complex": { lat: 39.130435, lng: -84.518557 },
+            "Teachers College": { lat: 39.130239, lng: -84.519158 },
+            "Braunstein Hall": { lat: 39.132964, lng: -84.518596 }
         };
 
         // Default Authentic Pre-Populated Data for UC Campus
